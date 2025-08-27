@@ -1,0 +1,25 @@
+# Core frameworks
+streamlit
+dash
+dash-bootstrap-components
+flask
+
+# Data processing
+pandas
+numpy
+geopandas
+
+# Visualization
+plotly
+folium
+streamlit-folium
+
+# Utilities
+requests
+Pillow
+python-dotenv
+
+# Testing and development
+pytest
+black
+isort
