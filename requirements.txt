@@ -33,6 +33,7 @@ click==8.2.1
     # via
     #   black
     #   flask
+    #   geocoder
     #   streamlit
 dash==3.2.0
     # via
@@ -40,6 +41,8 @@ dash==3.2.0
     #   dash-bootstrap-components
 dash-bootstrap-components==2.0.4
     # via -r requirements.in
+decorator==5.2.1
+    # via ratelim
 flask==3.1.2
     # via
     #   -r requirements.in
@@ -48,6 +51,10 @@ folium==0.20.0
     # via
     #   -r requirements.in
     #   streamlit-folium
+future==1.0.0
+    # via geocoder
+geocoder==1.38.1
+    # via -r requirements.in
 geopandas==1.1.1
     # via -r requirements.in
 gitdb==4.0.12
@@ -147,6 +154,8 @@ python-dotenv==1.1.1
     # via -r requirements.in
 pytz==2025.2
     # via pandas
+ratelim==0.1.6
+    # via geocoder
 referencing==0.36.2
     # via
     #   jsonschema
@@ -156,6 +165,7 @@ requests==2.32.5
     #   -r requirements.in
     #   dash
     #   folium
+    #   geocoder
     #   streamlit
 retrying==1.4.2
     # via dash
@@ -166,7 +176,9 @@ rpds-py==0.27.1
 shapely==2.1.1
     # via geopandas
 six==1.17.0
-    # via python-dateutil
+    # via
+    #   geocoder
+    #   python-dateutil
 smmap==5.0.2
     # via gitdb
 streamlit==1.49.0
