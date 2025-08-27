@@ -21,6 +21,7 @@ Pillow
 python-dotenv
 
 # Testing and development
+ipykernel
 pytest
 black
 isort
