@@ -70,6 +70,7 @@ class OregonSQMProcessor:
         """Return mapping of dataset names to CSV file names."""
         return {
             'sites': 'sites_locations.csv',
+            'geocode': 'sites_coordinates.csv',
             'clear_measurements': 'clear_night_measurements.csv',
             'cloudy_measurements': 'cloudy_night_measurements.csv',
             'trends': 'longterm_trends.csv',
