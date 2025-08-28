@@ -8,6 +8,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+
 import folium
 from streamlit_folium import st_folium
 import sys
@@ -17,6 +18,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent / "shared"))
 from utils.data_processing import OregonSQMProcessor
 from utils.visualizations import create_oregon_map, create_ranking_chart
+from utils.geocoding import OregonGeocoder
 
 # Page configuration
 st.set_page_config(
@@ -62,125 +64,6 @@ def load_data():
     
     return sites_df
 
-def create_interactive_map(sites_df: pd.DataFrame, night_type: str = "clear"):
-    """Create interactive Folium map"""
-    
-    # Select brightness column based on night type
-    if night_type == "clear":
-        brightness_col = 'median_brightness_mag_arcsec2'
-        title_suffix = "Clear Nights"
-    else:
-        brightness_col = 'cloudy_median_brightness'
-        title_suffix = "Cloudy Nights"
-        
-    # Filter sites with valid coordinates and brightness data
-    map_data = sites_df.dropna(subset=['latitude', 'longitude', brightness_col])
-    
-    # Create base map centered on Oregon
-    m = folium.Map(
-        location=[44.0, -121.0],
-        zoom_start=7,
-        tiles='OpenStreetMap'
-    )
-    
-    # Color mapping function
-    def get_color(brightness):
-        if pd.isna(brightness):
-            return 'gray'
-        elif brightness >= 21.5:  # Dark Sky Sanctuary
-            return 'darkgreen'
-        elif brightness >= 21.2:  # Dark Sky Park  
-            return 'green'
-        elif brightness >= 20.0:  # Rural
-            return 'yellow'
-        elif brightness >= 19.0:  # Suburban
-            return 'orange'
-        else:  # Urban
-            return 'red'
-    
-    # Add site markers
-    for idx, row in map_data.iterrows():
-        brightness = row[brightness_col]
-        color = get_color(brightness)
-        
-        # Create popup content
-        popup_html = f"""
-        <div style="width: 250px;">
-            <h4>{row['site_name']}</h4>
-            <p><strong>{title_suffix} Brightness:</strong> {brightness:.2f} mag/arcsec²</p>
-            <p><strong>Bortle Scale:</strong> {row.get('bortle_scale', 'N/A')}</p>
-            <p><strong>Dark Sky Status:</strong> {row.get('dark_sky_status', 'None')}</p>
-            <p><strong>Region:</strong> {row.get('region', 'Unknown')}</p>
-        </div>
-        """
-        
-        # Add marker
-        folium.CircleMarker(
-            location=[row['latitude'], row['longitude']],
-            radius=8 if row.get('dark_sky_status', 'None') != 'None' else 6,
-            popup=folium.Popup(popup_html, max_width=300),
-            color='black',
-            fillColor=color,
-            weight=2,
-            fillOpacity=0.8,
-            tooltip=f"{row['site_name']}: {brightness:.2f} mag/arcsec²"
-        ).add_to(m)
-    
-    return m
-
-def create_ranking_bar_chart(sites_df: pd.DataFrame, metric: str, night_type: str = "clear"):
-    """Create interactive bar chart for site rankings"""
-    
-    # Select appropriate columns
-    metric_mapping = {
-        'brightness': 'median_brightness_mag_arcsec2' if night_type == 'clear' else 'cloudy_median_brightness',
-        'bortle': 'bortle_scale',
-        'pollution_ratio': 'x_brighter_than_darkest',
-        'annual_change': 'annual_percent_change'
-    }
-    
-    y_col = metric_mapping.get(metric, 'median_brightness_mag_arcsec2')
-    
-    # Filter and sort data
-    chart_data = sites_df.dropna(subset=[y_col, 'site_name']).copy()
-    
-    # Sort based on metric (brightness is inverse - higher mag = darker)
-    ascending = True if metric == 'brightness' else False
-    chart_data = chart_data.sort_values(y_col, ascending=ascending)
-    
-    # Create color mapping
-    colors = ['darkgreen' if status != 'None' else 'lightblue' 
-              for status in chart_data.get('dark_sky_status', ['None'] * len(chart_data))]
-    
-    # Create bar chart
-    fig = go.Figure(data=go.Bar(
-        y=chart_data['site_name'],
-        x=chart_data[y_col],
-        orientation='h',
-        marker=dict(color=colors),
-        text=chart_data[y_col].round(2),
-        textposition='outside',
-        hovertemplate='<b>%{y}</b><br>Value: %{x:.2f}<extra></extra>'
-    ))
-    
-    # Update layout
-    title_map = {
-        'brightness': f'Sky Brightness ({night_type.title()} Nights)',
-        'bortle': 'Bortle Dark-Sky Scale',
-        'pollution_ratio': 'Light Pollution Ratio',
-        'annual_change': 'Annual Change (%)'
-    }
-    
-    fig.update_layout(
-        title=title_map.get(metric, 'Site Comparison'),
-        xaxis_title=f'{title_map.get(metric, "Value")}',
-        yaxis_title='Monitoring Site',
-        height=max(400, len(chart_data) * 20),
-        margin=dict(l=200, r=50, t=50, b=50),
-        showlegend=False
-    )
-    
-    return fig
 
 def main():
     """Main Streamlit application"""

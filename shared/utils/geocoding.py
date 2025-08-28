@@ -1,3 +1,4 @@
+import pandas as pd
 # shared/utils/geocoding.py
 """
 Geocoding utilities for Oregon SQM sites
@@ -17,13 +18,18 @@ class OregonGeocoder:
     
     def __init__(
             self,
+            use_cache: bool = True
         ):
         """
         Initialize the OregonGeocoder with optional caching
         """
         self.cache_file = "shared/data/geospatial/sites_geocodes.csv"
-        
         self.cache = self._load_cache() if use_cache else {}
+
+    def get_site_names(self, sites_csv_path: str = "shared/data/raw/sites_locations.csv") -> list:
+        """Read site names from sites_locations.csv and return as a list."""
+        df = pd.read_csv(sites_csv_path)
+        return df['Name'].dropna().tolist()
         
     def _load_cache(self) -> Dict:
         """Load geocoding cache to avoid repeat API calls"""
