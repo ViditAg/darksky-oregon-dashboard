@@ -174,15 +174,6 @@ def create_interactive_2d_plot(
 						  xref="x", yref="y", line=dict(color="blue", dash="dot"))
 	return fig
 
-#### Dash / Flask Helper Utilities ####
-# Dash integration (lazy import)
-try:
-	from dash import dcc  # Dash 2.x
-except ImportError:
-	try:
-		import dash_core_components as dcc  # Dash 1.x fallback
-	except ImportError:
-		dcc = None  # If Dash not installed
 
 def figure_to_dash_component(
 	fig: go.Figure,
@@ -246,7 +237,7 @@ def figure_html_for_flask(
 
 def create_oregon_map(
 	sites_df: pd.DataFrame,
-	night_type: str = "clear"
+	main_col: str
 ) -> folium.Map:
 	"""
 	Create interactive Folium map for Oregon sites. Usable in Streamlit and Jupyter.
@@ -255,70 +246,68 @@ def create_oregon_map(
 	----------
 	sites_df : pd.DataFrame
 		DataFrame containing site data.
-	night_type : str, optional
-		Type of night ('clear' or 'cloudy'), by default "clear".
-
+	main_col : str
+		Column name for main data values.
 	Returns
 	-------
 	folium.Map
 		Folium Map object with site markers.
 	"""
-	# Select brightness column and title
-	brightness_col = 'median_brightness_mag_arcsec2' if night_type == "clear" else 'cloudy_median_brightness'
-	title_suffix = "Clear Nights" if night_type == "clear" else "Cloudy Nights"
-	# Filter valid data
-	map_data = sites_df.dropna(subset=['latitude', 'longitude', brightness_col])
 	# Create base map
-	m = folium.Map(location=[44.0, -121.0], zoom_start=7, tiles='OpenStreetMap')
+	m = folium.Map(
+		location=[44.0, -121.0],
+		zoom_start=10,
+		tiles='OpenStreetMap'
+		)
+	# get values to set color for markers on the map
+	main_col_90perc = sites_df[main_col].quantile(0.9)
+	main_col_75perc = sites_df[main_col].quantile(0.75)
+	main_col_median = sites_df[main_col].median()
+	main_col_25perc = sites_df[main_col].quantile(0.25)
+	main_col_10perc = sites_df[main_col].quantile(0.1)
+
 	# Add site markers
-	for _, row in map_data.iterrows():
-		_add_site_marker(m, row, brightness_col, title_suffix)
+	for i, row in sites_df.iterrows():
+		if pd.isna(row[main_col]): color_ = 'gray'
+		elif row[main_col] >= main_col_90perc: color_ = 'darkgreen'
+		elif row[main_col] >= main_col_75perc: color_ = 'green'
+		elif row[main_col] >= main_col_median: color_ = 'yellow'
+		elif row[main_col] >= main_col_25perc: color_ = 'orange'
+		elif row[main_col] >= main_col_10perc: color_ = 'darkorange'
+		else: color_ = 'red'
+		_add_site_marker(
+			m, row, main_col=main_col,color_=color_
+		)
+	
 	return m
 
 def _add_site_marker(
 	m: folium.Map,
 	row: pd.Series,
-	brightness_col: str,
-	title_suffix: str
+	main_col: str,
+	color_: str
 ):
 	"""Add a CircleMarker for a site to the map."""
-	brightness = row[brightness_col]
-	color = _get_marker_color(brightness)
+	#get all columns from series and show the metrics in pop-up
+	# use the main column as primary thing 
+
 	popup_html = f"""
 	<div style='width: 250px;'>
 		<h4>{row['site_name']}</h4>
-		<p><strong>{title_suffix} Brightness:</strong> {brightness:.2f} mag/arcsec²</p>
-		<p><strong>Bortle Scale:</strong> {row.get('bortle_scale', 'N/A')}</p>
-		<p><strong>Dark Sky Status:</strong> {row.get('dark_sky_status', 'None')}</p>
-		<p><strong>Region:</strong> {row.get('region', 'Unknown')}</p>
+		<p><strong>{main_col}:</strong> {row[main_col]:.2f}</p>
 	</div>
 	"""
 	folium.CircleMarker(
 		location=[row['latitude'], row['longitude']],
-		radius=8 if row.get('dark_sky_status', 'None') != 'None' else 6,
+		radius=6,
 		popup=folium.Popup(popup_html, max_width=300),
 		color='black',
-		fillColor=color,
+		fillColor=color_,
 		weight=2,
 		fillOpacity=0.8,
-		tooltip=f"{row['site_name']}: {brightness:.2f} mag/arcsec²"
+		tooltip=f"{row['site_name']}: {row[main_col] :.2f}"
 	).add_to(m)
-
-def _get_marker_color(brightness: float) -> str:
-	"""Return color for marker based on brightness value."""
-	if pd.isna(brightness):
-		return 'gray'
-	elif brightness >= 21.5:
-		return 'darkgreen'
-	elif brightness >= 21.2:
-		return 'green'
-	elif brightness >= 20.0:
-		return 'yellow'
-	elif brightness >= 19.0:
-		return 'orange'
-	else:
-		return 'red'
-
+	
 
 def get_folium_html(
 	map_obj: folium.Map,
@@ -362,32 +351,3 @@ def get_plotly_html(fig: go.Figure) -> str:
 	"""
 	return fig.to_html(full_html=False)
 
-# # Optional: Dash-specific wrapper for Folium map
-# try:
-# 	import dash_html_components as html
-# 	def folium_map_dash_component(
-# 		map_obj: folium.Map,
-# 		width: str = "100%",
-# 		height: str = "500px"
-# 	):
-# 		"""
-# 		Return a Dash html.Iframe component with the Folium map.
-
-# 		Parameters
-# 		----------
-# 		map_obj : folium.Map
-# 			Folium map object.
-# 		width : str, optional
-# 			Width of the iframe. Defaults to "100%".
-# 		height : str, optional
-# 			Height of the iframe. Defaults to "500px".
-
-# 		Returns
-# 		-------
-# 		html.Iframe
-# 			Dash HTML Iframe component with the map.
-# 		"""
-# 		return html.Iframe(srcDoc=get_folium_html(map_obj, width, height), width=width, height=height)
-# except ImportError:
-# 	pass
-# # defining functions to create visualizations
