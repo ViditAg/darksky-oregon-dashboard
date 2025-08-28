@@ -57,10 +57,10 @@ class OregonSQMProcessor:
         csv_files = {
             'sites': 'sites_locations.csv',
             'clear_measurements': 'clear_night_measurements.csv',
-            'cloudy_measurements': 'cloudy_night_measurements.csv', 
-            'trends': 'longterm_trends.csv',
-            'milky_way': 'milky_way_visibility.csv',
-            'cloud_coverage': 'cloud_coverage_monthly.csv'
+            # 'cloudy_measurements': 'cloudy_night_measurements.csv', 
+            # 'trends': 'longterm_trends.csv',
+            # 'milky_way': 'milky_way_visibility.csv',
+            # 'cloud_coverage': 'cloud_coverage_monthly.csv'
         }
 
         # Load each CSV file into a DataFrame
@@ -99,7 +99,7 @@ class OregonSQMProcessor:
         
         # Check sites data
         # Sites data should have at least 60 records and contain latitude/longitude
-        sites_df = data.get('sites', pd.DataFrame())
+        sites_df = data.get('site_name', pd.DataFrame())
         validation_results['sites_complete'] = len(sites_df) >= 60  # Expect ~65 sites
         # sites have coordinates defined
         validation_results['sites_have_coords'] = 'latitude' in sites_df.columns and 'longitude' in sites_df.columns

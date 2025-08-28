@@ -15,8 +15,14 @@ logger = logging.getLogger(__name__)
 class OregonGeocoder:
     """Geocode Oregon SQM site locations"""
     
-    def __init__(self, use_cache: bool = True):
-        self.cache_file = "shared/data/processed/geocoding_cache.json"
+    def __init__(
+            self,
+        ):
+        """
+        Initialize the OregonGeocoder with optional caching
+        """
+        self.cache_file = "shared/data/geospatial/sites_geocodes.csv"
+        
         self.cache = self._load_cache() if use_cache else {}
         
     def _load_cache(self) -> Dict:
@@ -39,10 +45,6 @@ class OregonGeocoder:
         ) -> Optional[Tuple[float, float]]:
         """Geocode a single site name to lat/lon coordinates using geocoder library (OSM)"""
         # Lazy import so rest of module works even if dependency not yet installed
-        try:
-        except ImportError:
-            logger.error("geocoder library not installed. Add 'geocoder' to requirements.in")
-            return None
         
         cache_key = f"{site_name}, {state}"
         if cache_key in self.cache:
@@ -54,7 +56,7 @@ class OregonGeocoder:
         
         try:
             # Respect free service rate limits
-            time.sleep(1)
+            time.sleep(5)
             
             # Oregon bounding box: west, south, east, north
             viewbox = "-124.8,41.9,-116.4,46.3"
@@ -64,7 +66,8 @@ class OregonGeocoder:
                 bounded=1,
                 countrycodes="us",
                 maxRows=1,
-                timeout=10
+                timeout=10,
+                headers={"User-Agent": "OregonSQM-Dashboard/1.0 (viditagrawal91@gmail.com)"}
             )
             
             if g.ok and g.latlng:

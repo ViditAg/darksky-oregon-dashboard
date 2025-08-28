@@ -21,7 +21,6 @@ from utils.visualizations import create_oregon_map, create_ranking_chart
 # Page configuration
 st.set_page_config(
     page_title="Oregon Dark Sky Dashboard - Streamlit",
-    page_icon="🌌",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -187,7 +186,7 @@ def main():
     """Main Streamlit application"""
     
     # Header
-    st.title("🌌 Oregon Dark Sky Dashboard")
+    st.title("Oregon Dark Sky Dashboard")
     st.markdown("**Streamlit Implementation** - Interactive Light Pollution Visualization")
     
     # Load data
@@ -226,7 +225,7 @@ def main():
     )
     
     # Key metrics summary
-    st.subheader("📊 Key Statistics")
+    st.subheader("Key Statistics")
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -264,11 +263,11 @@ def main():
         # Display legend
         st.markdown("""
         **Legend:**
-        - 🟢 **Dark Green**: Pristine (≥21.5 mag/arcsec²)
-        - 🟢 **Green**: Dark Sky Park Quality (≥21.2 mag/arcsec²)  
-        - 🟡 **Yellow**: Rural (≥20.0 mag/arcsec²)
-        - 🟠 **Orange**: Suburban (≥19.0 mag/arcsec²)
-        - 🔴 **Red**: Urban (<19.0 mag/arcsec²)
+        -  **Dark Green**: Pristine (≥21.5 mag/arcsec²)
+        -  **Green**: Dark Sky Park Quality (≥21.2 mag/arcsec²)  
+        -  **Yellow**: Rural (≥20.0 mag/arcsec²)
+        -  **Orange**: Suburban (≥19.0 mag/arcsec²)
+        -  **Red**: Urban (<19.0 mag/arcsec²)
         """)
     
     with col_chart:
