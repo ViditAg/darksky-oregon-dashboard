@@ -10,12 +10,17 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import json
+import os
 import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../shared')))
+from utils.visualizations import create_oregon_map, create_ranking_chart, get_folium_html, get_plotly_html
 from pathlib import Path
 
 # Add shared utilities to path
 sys.path.append(str(Path(__file__).parent.parent / "shared"))
 from utils.data_processing import OregonSQMProcessor
+
+from utils.visualizations import create_oregon_map, create_ranking_chart, get_folium_html, get_plotly_html
 
 # Initialize Flask app
 app = Flask(__name__)

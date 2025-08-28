@@ -14,11 +14,15 @@ from streamlit_folium import st_folium
 import sys
 from pathlib import Path
 
-# Add shared utilities to path
-sys.path.append(str(Path(__file__).parent.parent / "shared"))
-from utils.data_processing import OregonSQMProcessor
-from utils.visualizations import create_oregon_map, create_ranking_chart
-from utils.geocoding import OregonGeocoder
+# Add project root to path so 'shared' package is importable
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+from shared.utils.data_processing import OregonSQMProcessor
+from shared.utils.visualizations import create_oregon_map, create_ranking_chart
+from shared.utils.visualizations import get_folium_html, get_plotly_html
+from shared.utils.geocoding import OregonGeocoder
 
 # Page configuration
 st.set_page_config(
@@ -137,12 +141,9 @@ def main():
     col_map, col_chart = st.columns([3, 2])
     
     with col_map:
-        st.subheader(f"🗺️ Oregon Light Pollution Map ({night_type.title()} Nights)")
-        
-        # Create and display map
-        oregon_map = create_interactive_map(sites_df, night_type)
+        oregon_map = create_oregon_map(sites_df, night_type)
+        # For Streamlit, use st_folium
         map_data = st_folium(oregon_map, width=700, height=500)
-        
         # Display legend
         st.markdown("""
         **Legend:**
@@ -154,10 +155,7 @@ def main():
         """)
     
     with col_chart:
-        st.subheader(f"📊 Site Rankings")
-        
-        # Create and display bar chart
-        ranking_chart = create_ranking_bar_chart(sites_df, metric, night_type)
+        ranking_chart = create_ranking_chart(sites_df, metric, night_type)
         st.plotly_chart(ranking_chart, use_container_width=True)
     
     # Data table

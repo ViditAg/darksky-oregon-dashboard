@@ -4,7 +4,6 @@ import pandas as pd
 Geocoding utilities for Oregon SQM sites
 """
 
-import requests
 import time
 import json
 from typing import Dict, List, Tuple, Optional
@@ -14,56 +13,98 @@ import geocoder
 logger = logging.getLogger(__name__)
 
 class OregonGeocoder:
-    """Geocode Oregon SQM site locations"""
-    
+    """
+    Geocode Oregon SQM site locations.
+    """
+
     def __init__(
-            self,
-            use_cache: bool = True
-        ):
+        self,
+        use_cache: bool = True
+    ):
         """
-        Initialize the OregonGeocoder with optional caching
+        Initialize the OregonGeocoder with optional caching.
+
+        Parameters
+        ----------
+        use_cache : bool, optional
+            Whether to use a cache file for geocoding results. Defaults to True.
         """
         self.cache_file = "shared/data/geospatial/sites_geocodes.csv"
         self.cache = self._load_cache() if use_cache else {}
 
-    def get_site_names(self, sites_csv_path: str = "shared/data/raw/sites_locations.csv") -> list:
-        """Read site names from sites_locations.csv and return as a list."""
+    def get_site_names(
+        self,
+        sites_csv_path: str = "shared/data/raw/sites_locations.csv"
+    ) -> list:
+        """
+        Read site names from sites_locations.csv and return as a list.
+
+        Parameters
+        ----------
+        sites_csv_path : str, optional
+            Path to the sites_locations.csv file. Defaults to the standard location.
+
+        Returns
+        -------
+        list
+            List of site names (str).
+        """
         df = pd.read_csv(sites_csv_path)
         return df['Name'].dropna().tolist()
-        
+
     def _load_cache(self) -> Dict:
-        """Load geocoding cache to avoid repeat API calls"""
+        """
+        Load geocoding cache to avoid repeat API calls.
+
+        Returns
+        -------
+        Dict
+            Cached geocoding results.
+        """
         try:
             with open(self.cache_file, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
-    
+
     def _save_cache(self):
-        """Save geocoding cache"""
+        """
+        Save geocoding cache to file.
+        """
         with open(self.cache_file, 'w') as f:
             json.dump(self.cache, f, indent=2)
-    
+
     def geocode_site(
-            self,
-            site_name: str,
-            state: str = "Oregon"
-        ) -> Optional[Tuple[float, float]]:
-        """Geocode a single site name to lat/lon coordinates using geocoder library (OSM)"""
-        # Lazy import so rest of module works even if dependency not yet installed
-        
+        self,
+        site_name: str,
+        state: str = "Oregon"
+    ) -> Optional[Tuple[float, float]]:
+        """
+        Geocode a single site name to lat/lon coordinates using geocoder library (OSM).
+
+        Parameters
+        ----------
+        site_name : str
+            Name of the site to geocode.
+        state : str, optional
+            State name for geocoding context. Defaults to "Oregon".
+
+        Returns
+        -------
+        Optional[Tuple[float, float]]
+            (latitude, longitude) if found, else None.
+        """
+        # Check cache first
         cache_key = f"{site_name}, {state}"
         if cache_key in self.cache:
             logger.info(f"Cache hit for: {cache_key}")
             coords = self.cache[cache_key]
             return (coords['lat'], coords['lon']) if coords else None
-        
+
         query = f"{site_name}, {state}, USA"
-        
         try:
             # Respect free service rate limits
             time.sleep(5)
-            
             # Oregon bounding box: west, south, east, north
             viewbox = "-124.8,41.9,-116.4,46.3"
             g = geocoder.osm(
@@ -75,7 +116,6 @@ class OregonGeocoder:
                 timeout=10,
                 headers={"User-Agent": "OregonSQM-Dashboard/1.0 (viditagrawal91@gmail.com)"}
             )
-            
             if g.ok and g.latlng:
                 lat, lon = g.latlng
                 self.cache[cache_key] = {'lat': lat, 'lon': lon}
@@ -87,17 +127,29 @@ class OregonGeocoder:
                 self.cache[cache_key] = None
                 self._save_cache()
                 return None
-        
         except Exception as e:
             logger.error(f"Geocoding failed for {site_name}: {e}")
             return None
-    
-    def geocode_batch(self, site_names: List[str]) -> Dict[str, Optional[Tuple[float, float]]]:
-        """Geocode multiple sites with progress tracking"""
+
+    def geocode_batch(
+        self,
+        site_names: List[str]
+    ) -> Dict[str, Optional[Tuple[float, float]]]:
+        """
+        Geocode multiple sites with progress tracking.
+
+        Parameters
+        ----------
+        site_names : List[str]
+            List of site names to geocode.
+
+        Returns
+        -------
+        Dict[str, Optional[Tuple[float, float]]]
+            Mapping from site name to (lat, lon) or None.
+        """
         results = {}
-        
         logger.info(f"Geocoding {len(site_names)} sites...")
-        
         for i, site_name in enumerate(site_names, 1):
             logger.info(f"[{i}/{len(site_names)}] Processing: {site_name}")
             coords = self.geocode_site(site_name)

@@ -1,15 +1,90 @@
+def get_folium_html(
+	map_obj: folium.Map,
+	width: str = "100%",
+	height: str = "500px"
+) -> str:
+	"""
+	Return HTML representation of a Folium map for Flask or Dash.
+
+	Parameters
+	----------
+	map_obj : folium.Map
+		Folium map object.
+	width : str, optional
+		Width of the map in HTML/CSS units. Defaults to "100%".
+	height : str, optional
+		Height of the map in HTML/CSS units. Defaults to "500px".
+
+	Returns
+	-------
+	str
+		HTML string for embedding the map.
+	"""
+	html = map_obj._repr_html_()
+	html = html.replace('width:100%;', f'width:{width};').replace('height:100%;', f'height:{height};')
+	return html
+
+def get_plotly_html(fig: go.Figure) -> str:
+	"""
+	Return HTML representation of a Plotly figure for Flask or other web frameworks.
+
+	Parameters
+	----------
+	fig : go.Figure
+		Plotly Figure object.
+
+	Returns
+	-------
+	str
+		HTML string for embedding the figure.
+	"""
+	return fig.to_html(full_html=False)
+
+# Optional: Dash-specific wrapper for Folium map
+try:
+	import dash_html_components as html
+	def folium_map_dash_component(
+		map_obj: folium.Map,
+		width: str = "100%",
+		height: str = "500px"
+	):
+		"""
+		Return a Dash html.Iframe component with the Folium map.
+
+		Parameters
+		----------
+		map_obj : folium.Map
+			Folium map object.
+		width : str, optional
+			Width of the iframe. Defaults to "100%".
+		height : str, optional
+			Height of the iframe. Defaults to "500px".
+
+		Returns
+		-------
+		html.Iframe
+			Dash HTML Iframe component with the map.
+		"""
+		return html.Iframe(srcDoc=get_folium_html(map_obj, width, height), width=width, height=height)
+except ImportError:
+	pass
+# defining functions to create visualizations
+
+# importing neccessary libraries
 import pandas as pd
 import folium
 import plotly.graph_objects as go
+from streamlit import metric
 
 
+#### Ranking Chart Visualization ####
 def create_ranking_chart(
 	sites_df: pd.DataFrame,
 	metric: str,
 	night_type: str = "clear"
 ) -> go.Figure:
 	"""
-	Create interactive Plotly bar chart for site rankings. Usable in Streamlit and Jupyter.
+	Create interactive Plotly bar chart for site rankings.
 
 	Parameters
 	----------
@@ -40,7 +115,7 @@ def _get_metric_column(metric: str, night_type: str) -> str:
 	metric_mapping = {
 		'brightness': 'median_brightness_mag_arcsec2' if night_type == 'clear' else 'cloudy_median_brightness',
 		'bortle': 'bortle_scale',
-		'pollution_ratio': 'x_brighter_than_darkest',
+		'X_brighter': 'x_brighter_than_darkest',
 		'annual_change': 'annual_percent_change'
 	}
 	return metric_mapping.get(metric, 'median_brightness_mag_arcsec2')
@@ -95,6 +170,7 @@ def _build_ranking_bar_chart(
 	)
 	return fig
 
+######## Oregon Map Visualization ########
 
 def create_oregon_map(
 	sites_df: pd.DataFrame,

@@ -21,67 +21,89 @@ if not logger.hasHandlers():
     logger.addHandler(handler)
 logger.propagate = False  # Prevent log messages from being propagated to the root logger (avoids duplicate output in Jupyter)
 
-class OregonSQMProcessor:
-    """Process Oregon SQM Network data for dashboard consumption"""
-    
-    def __init__(
-            self,
-            data_dir: str = "shared/data"
-        ):
-        """
-        Initialize processor with data directory paths
 
-        Parameters:
-            data_dir (str, optional): Path to the data directory. Defaults to "shared/data".
+class OregonSQMProcessor:
+    """
+    Process Oregon SQM Network data for dashboard consumption.
+    """
+
+    def __init__(
+        self,
+        data_dir: str = "shared/data"
+    ):
         """
-        
+        Initialize processor with data directory paths.
+
+        Parameters
+        ----------
+        data_dir : str, optional
+            Path to the data directory. Defaults to "shared/data".
+        """
         # Log the initialization
         logger.info(f"Initializing OregonSQMProcessor with data directory: {data_dir}")
-        
         # Set up data directory paths
         self.data_dir = Path(data_dir)
-        
         # Define raw and processed data directories
         self.raw_dir = self.data_dir / "raw"
-    
-    def load_raw_data(self) -> Dict[str, pd.DataFrame]:
-        """
-        Load all raw CSV files into DataFrames
 
-        Returns:
-            data (Dict[str, pd.DataFrame]): Dictionary of DataFrames keyed by dataset name
+    def load_raw_data(
+        self
+    ) -> Dict[str, pd.DataFrame]:
+        """
+        Load all raw CSV files into DataFrames.
+
+        Returns
+        -------
+        Dict[str, pd.DataFrame]
+            Dictionary of DataFrames keyed by dataset name.
         """
         # Initialize a dictionary to hold the data
         data = {}
+        # Get mapping of dataset names to CSV file paths
+        csv_files = self._get_csv_file_map()
+        # Load each CSV file into a DataFrame
+        for key, filename in csv_files.items():
+            self._load_single_csv(data, key, filename)
+        return data
 
-        # Map dataset names to their CSV file paths
-        csv_files = {
+    def _get_csv_file_map(self) -> Dict[str, str]:
+        """Return mapping of dataset names to CSV file names."""
+        return {
             'sites': 'sites_locations.csv',
             'clear_measurements': 'clear_night_measurements.csv',
-            'cloudy_measurements': 'cloudy_night_measurements.csv', 
+            'cloudy_measurements': 'cloudy_night_measurements.csv',
             'trends': 'longterm_trends.csv',
             'milky_way': 'milky_way_visibility.csv',
             'cloud_coverage': 'cloud_coverage.csv'
         }
 
-        # Load each CSV file into a DataFrame
-        for key, filename in csv_files.items():
-            # Construct the file path to the CSV file
-            file_path = self.raw_dir / filename
-            # Check if the file exists
-            if file_path.exists():
-                # Load the CSV file into a DataFrame
-                data[key] = pd.read_csv(file_path)
-                # Log the number of records loaded
-                logger.info(f"Loaded {key}: {len(data[key])} records")
-            else:
-                # If the file doesn't exist, create an empty DataFrame
-                data[key] = pd.DataFrame()
-                # Log a warning
-                logger.warning(f"File not found: {file_path}")
+    def _load_single_csv(
+        self,
+        data: dict,
+        key: str,
+        filename: str
+    ):
+        """
+        Load a single CSV file into the data dictionary, with logging.
 
-        # Return the loaded data dictionary
-        return data
+        Parameters
+        ----------
+        data : dict
+            Dictionary to store loaded DataFrames.
+        key : str
+            Key for the dataset.
+        filename : str
+            CSV file name.
+        """
+        file_path = self.raw_dir / filename
+        if file_path.exists():
+            # Load the CSV file into a DataFrame
+            data[key] = pd.read_csv(file_path)
+            logger.info(f"Loaded {key}: {len(data[key])} records")
+        else:
+            # If the file doesn't exist, create an empty DataFrame
+            data[key] = pd.DataFrame()
+            logger.warning(f"File not found: {file_path}")
 
 def main():
     """Main processing pipeline"""

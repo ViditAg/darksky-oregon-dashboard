@@ -15,7 +15,16 @@ from pathlib import Path
 
 # Add shared utilities to path
 sys.path.append(str(Path(__file__).parent.parent / "shared"))
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../shared')))
 from utils.data_processing import OregonSQMProcessor
+from utils.visualizations import create_oregon_map, create_ranking_chart, get_folium_html, get_plotly_html
+try:
+    from utils.visualizations import folium_map_dash_component
+except ImportError:
+    folium_map_dash_component = None
 
 # Initialize Dash app with Bootstrap theme
 app = dash.Dash(__name__, 
@@ -277,83 +286,23 @@ def update_map(night_type):
     if sites_df.empty:
         return {}, html.Div()
     
-    # Select brightness column
-    brightness_col = 'median_brightness_mag_arcsec2' if night_type == 'clear' else 'cloudy_median_brightness'
-    
-    # Filter data with valid coordinates and brightness
-    map_data = sites_df.dropna(subset=['latitude', 'longitude', brightness_col]).copy()
-    
-    if map_data.empty:
-        return {}, html.Div("No data available for mapping")
-    
-    # Create color categories
-    def categorize_brightness(brightness):
-        if pd.isna(brightness):
-            return 'No Data'
-        elif brightness >= 21.5:
-            return 'Pristine (≥21.5)'
-        elif brightness >= 21.2:
-            return 'Excellent (≥21.2)'
-        elif brightness >= 20.0:
-            return 'Good (≥20.0)'
-        elif brightness >= 19.0:
-            return 'Fair (≥19.0)'
-        else:
-            return 'Poor (<19.0)'
-    
-    map_data['brightness_category'] = map_data[brightness_col].apply(categorize_brightness)
-    map_data['size'] = map_data.get('dark_sky_status', 'None').apply(
-        lambda x: 15 if x != 'None' else 10
-    )
-    
-    # Create scatter mapbox
-    fig = px.scatter_mapbox(
-        map_data,
-        lat='latitude',
-        lon='longitude',
-        color='brightness_category',
-        size='size',
-        hover_name='site_name',
-        hover_data={
-            brightness_col: ':.2f',
-            'bortle_scale': True,
-            'dark_sky_status': True,
-            'region': True,
-            'brightness_category': False,
-            'size': False
-        },
-        color_discrete_map={
-            'Pristine (≥21.5)': '#1a5490',
-            'Excellent (≥21.2)': '#2d7d32',
-            'Good (≥20.0)': '#f9a825',
-            'Fair (≥19.0)': '#ff8f00',
-            'Poor (<19.0)': '#d32f2f',
-            'No Data': '#757575'
-        },
-        zoom=6,
-        center=dict(lat=44.0, lon=-121.0),
-        mapbox_style='open-street-map',
-        title=f"Oregon Light Pollution Map - {night_type.title()} Nights"
-    )
-    
-    fig.update_layout(
-        height=600,
-        margin=dict(l=0, r=0, t=50, b=0)
-    )
-    
-    # Create legend
-    legend = html.Div([
-        html.P("Brightness Categories:", className="fw-bold mb-2"),
-        html.Div([
-            html.Span("🟦", style={'marginRight': '5px'}), "Pristine (≥21.5 mag/arcsec²)", html.Br(),
-            html.Span("🟢", style={'marginRight': '5px'}), "Excellent (≥21.2 mag/arcsec²)", html.Br(),
-            html.Span("🟡", style={'marginRight': '5px'}), "Good (≥20.0 mag/arcsec²)", html.Br(),
-            html.Span("🟠", style={'marginRight': '5px'}), "Fair (≥19.0 mag/arcsec²)", html.Br(),
-            html.Span("🔴", style={'marginRight': '5px'}), "Poor (<19.0 mag/arcsec²)"
-        ], className="small text-muted")
-    ])
-    
-    return fig, legend
+    # Use Folium map for Dash if folium_map_dash_component is available
+    if folium_map_dash_component:
+        oregon_map = create_oregon_map(sites_df, night_type)
+        dash_map = folium_map_dash_component(oregon_map, width="100%", height="600px")
+        legend = html.Div([
+            html.P("Brightness Categories:", className="fw-bold mb-2"),
+            html.Div([
+                html.Span("🟦", style={'marginRight': '5px'}), "Pristine (≥21.5 mag/arcsec²)", html.Br(),
+                html.Span("🟢", style={'marginRight': '5px'}), "Excellent (≥21.2 mag/arcsec²)", html.Br(),
+                html.Span("🟡", style={'marginRight': '5px'}), "Good (≥20.0 mag/arcsec²)", html.Br(),
+                html.Span("🟠", style={'marginRight': '5px'}), "Fair (≥19.0 mag/arcsec²)", html.Br(),
+                html.Span("🔴", style={'marginRight': '5px'}), "Poor (<19.0 mag/arcsec²)"
+            ], className="small text-muted")
+        ])
+        return dash_map, legend
+    else:
+        return {}, html.Div("Folium map embedding not available.")
 
 @app.callback(
     Output('ranking-chart', 'figure'),
@@ -436,25 +385,5 @@ def update_table(show_all, search_term, night_type):
     if sites_df.empty:
         return [], []
     
-    # Determine columns to show
-    if 'all' in show_all:
-        columns = [{"name": col, "id": col} for col in sites_df.columns]
-        display_df = sites_df.copy()
-    else:
-        essential_cols = ['site_name', 'median_brightness_mag_arcsec2', 'bortle_scale', 
-                         'dark_sky_status', 'region', 'latitude', 'longitude']
-        available_cols = [col for col in essential_cols if col in sites_df.columns]
-        columns = [{"name": col.replace('_', ' ').title(), "id": col} for col in available_cols]
-        display_df = sites_df[available_cols].copy()
-    
-    # Apply search filter
-    if search_term:
-        display_df = display_df[
-            display_df['site_name'].str.contains(search_term, case=False, na=False)
-        ]
-    
-    return columns, display_df.to_dict('records')
-
-# Run app
-if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    # Use the shared create_ranking_chart for Dash
+    # Removed erroneous call to create_ranking_chart outside function scope
