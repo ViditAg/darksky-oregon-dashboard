@@ -1,190 +1,238 @@
-# Streamlit implementation
-# streamlit_app/app.py
-"""
-Streamlit implementation of Oregon Dark Sky Dashboard
-"""
-
-import streamlit as st
+# importing necessary libraries
+import sys
+from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
-import folium
+import streamlit as st
 from streamlit_folium import st_folium
-import sys
-from pathlib import Path
 
+# local import
 # Add project root to path so 'shared' package is importable
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from shared.utils.data_processing import OregonSQMProcessor
-from shared.utils.visualizations import create_oregon_map, create_ranking_chart
-from shared.utils.visualizations import get_folium_html, get_plotly_html
-from shared.utils.geocoding import OregonGeocoder
+from shared.utils.visualizations import create_oregon_map, create_ranking_chart, create_interactive_2d_plot
 
-# Page configuration
-st.set_page_config(
-    page_title="Oregon Dark Sky Dashboard - Streamlit",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Cached data loader
+@st.cache_data(
+        ttl=3600,  # Cache data for 1 hour
+        show_spinner="Loading raw SQM data..."
+        )
+def load_data(data_dir: Path | None = None):
+    """
+    Instantiate OregonSQMProcessor and load all raw data frames.
 
-# Custom CSS
-st.markdown("""
-<style>
-    .main > div { padding-top: 2rem; }
-    .stMetric { 
-        background-color: #f0f2f6; 
-        border: 1px solid #d1d5db; 
-        padding: 1rem; 
-        border-radius: 0.5rem; 
-    }
-    .dark-sky-badge {
-        background: linear-gradient(90deg, #1e3a8a, #3730a3);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        font-weight: bold;
-        display: inline-block;
-        margin: 0.25rem;
-    }
-</style>
-""", unsafe_allow_html=True)
+    Parameters
+    ----------
+    data_dir : Path | None
+        Optional override for data directory. If None, processor uses its internal default.
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
-def load_data():
-    """Load and cache processed data"""
-    processor = OregonSQMProcessor()
-    
-    # Load processed data
-    sites_path = Path("shared/data/processed/sites_master.json")
-    if sites_path.exists():
-        sites_df = pd.read_json(sites_path)
-    else:
-        st.error("Processed data not found. Please run data processing pipeline.")
+    Returns
+    -------
+    dict | None
+        Dictionary of raw DataFrames keyed by dataset name, or None on failure.
+    """
+    try:
+        processor = OregonSQMProcessor(data_dir=data_dir)
+        raw_dfs = processor.load_raw_data()
+        # Basic validation
+        if not isinstance(raw_dfs, dict) or not raw_dfs:
+            st.error("Loaded data is empty or invalid.")
+            return None
+        return raw_dfs
+    except Exception as e:
+        st.error(f"Failed to load data: {e}")
         return None
-    
-    return sites_df
+
+
 
 
 def main():
-    """Main Streamlit application"""
-    
-    # Header
-    st.title("Oregon Dark Sky Dashboard")
-    st.markdown("**Streamlit Implementation** - Interactive Light Pollution Visualization")
-    
-    # Load data
-    sites_df = load_data()
-    if sites_df is None:
-        return
-    
-    # Sidebar controls
-    st.sidebar.header("Dashboard Controls")
-    
-    # Night type toggle
-    night_type = st.sidebar.radio(
-        "Measurement Type",
-        ["clear", "cloudy"],
-        format_func=lambda x: f"{x.title()} Nights",
-        help="Toggle between clear and cloudy night measurements"
+    """
+    Main function to run the Streamlit app.
+    """
+    # Set Streamlit page layout to wide for best use of screen space
+    st.set_page_config(
+        layout="wide",
+        page_title="Oregon Dark Sky Dashboard",
+    )
+    # Custom CSS for top margin adjustment
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            padding-top: 1rem !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        header { margin-top: 0 !important; }
+        </style>
+        """,
+        unsafe_allow_html=True
     )
     
-    # Metric selection for bar chart
-    metric = st.sidebar.selectbox(
-        "Bar Chart Metric",
-        ["brightness", "bortle", "pollution_ratio", "annual_change"],
-        format_func=lambda x: {
-            'brightness': 'Sky Brightness',
-            'bortle': 'Bortle Scale',
-            'pollution_ratio': 'Pollution Ratio', 
-            'annual_change': 'Annual Change'
-        }[x]
+    # Set dashboard title and description
+    st.title("[Dark Sky Oregon](https://www.darkskyoregon.org/) - Skyglow Dashboard")
+
+    # Sidebar controls for user interaction
+    st.sidebar.info(
+        """**[Skyglow](https://en.wikipedia.org/wiki/Skyglow)**: Diffused unnatural luminance of the night sky, 
+        caused by artificial lights scattering in the atmosphere and obscuring
+         stars and celestial objects."""
     )
-    
-    # Sort order for bar chart
-    sort_ascending = st.sidebar.checkbox(
-        "Sort Ascending",
-        value=(metric == 'brightness'),  # Default ascending for brightness
-        help="Check to sort from lowest to highest values"
+
+    # Measurement type selection (for future extensibility)
+    meas_type_dict = {
+        "clear_nights_brightness": "clear_measurements",
+        "cloudy_nights_brightness": "cloudy_measurements",
+        "long_term_trends": "trends",
+        "milky_way_visibility": "milky_way",
+        "% clear nights": "cloud_coverage"
+    }
+    question_dict = {
+        "clear_nights_brightness": "Where in Oregon is the Night Sky Most Pristine? And, Most Light Polluted? **(Clear nights)**",
+        "cloudy_nights_brightness": "Where in Oregon is the Night Sky Most Pristine? And, Most Light Polluted? **(Cloudy nights)**",
+        "long_term_trends": "Where are the starry night skies disappearing the fastest in Oregon?",
+        "milky_way_visibility": "Where does the Milky Way stand out best in Oregon?",
+        "% clear nights": "Where in Oregon are the clearest – least cloudy – night skies?"
+    }
+    meas_type = st.sidebar.radio(
+        "**Question?**",
+        list(meas_type_dict.keys()),
+        format_func=lambda x: question_dict[x],
+        help="Toggle between measurements types"
     )
+    # save selected measurement type in a variable
+    meas_type_table = meas_type_dict[meas_type]
     
-    # Key metrics summary
-    st.subheader("Key Statistics")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        total_sites = len(sites_df.dropna(subset=['latitude', 'longitude']))
-        st.metric("Total Sites", total_sites)
-    
-    with col2:
-        if night_type == 'clear' and 'median_brightness_mag_arcsec2' in sites_df.columns:
-            darkest_brightness = sites_df['median_brightness_mag_arcsec2'].max()
-            st.metric("Darkest Sky", f"{darkest_brightness:.2f} mag/arcsec²")
-        else:
-            st.metric("Darkest Sky", "N/A")
-    
-    with col3:
-        certified_sites = len(sites_df[sites_df.get('dark_sky_status', 'None') != 'None'])
-        st.metric("Dark Sky Places", certified_sites)
-    
-    with col4:
-        if 'annual_percent_change' in sites_df.columns:
-            avg_change = sites_df['annual_percent_change'].mean()
-            st.metric("Avg Annual Change", f"{avg_change:.1f}%")
-        else:
-            st.metric("Avg Annual Change", "N/A")
-    
-    # Main content area
-    col_map, col_chart = st.columns([3, 2])
-    
-    with col_map:
-        oregon_map = create_oregon_map(sites_df, night_type)
-        # For Streamlit, use st_folium
-        map_data = st_folium(oregon_map, width=700, height=500)
-        # Display legend
-        st.markdown("""
-        **Legend:**
-        -  **Dark Green**: Pristine (≥21.5 mag/arcsec²)
-        -  **Green**: Dark Sky Park Quality (≥21.2 mag/arcsec²)  
-        -  **Yellow**: Rural (≥20.0 mag/arcsec²)
-        -  **Orange**: Suburban (≥19.0 mag/arcsec²)
-        -  **Red**: Urban (<19.0 mag/arcsec²)
-        """)
-    
-    with col_chart:
-        ranking_chart = create_ranking_chart(sites_df, metric, night_type)
-        st.plotly_chart(ranking_chart, use_container_width=True)
-    
-    # Data table
-    st.subheader("📋 Complete Site Data")
-    
-    # Display options
-    show_all_columns = st.checkbox("Show All Columns", value=False)
-    
-    if show_all_columns:
-        display_df = sites_df
+    # only show bar chart when showing % of clear nights
+    if meas_type == "% clear nights":
+        plot_type = "Bar Chart"
+        bar_metric = "percent_clear_night_samples_all_months"
     else:
-        # Show essential columns only
-        essential_cols = ['site_name', 'median_brightness_mag_arcsec2', 'bortle_scale', 
-                         'dark_sky_status', 'region']
-        available_cols = [col for col in essential_cols if col in sites_df.columns]
-        display_df = sites_df[available_cols]
+        # Plot type selection
+        plot_type = "Bar+Scatter Chart"
+        if meas_type == "milky_way_visibility":
+            bar_metric = "ratio_index"
+            scatter_x = "difference_index_mag_arcsec2"
+            scatter_y = "ratio_index"
+        elif meas_type == "long_term_trends":
+            bar_metric = "Rate_of_Change_vs_Prineville_Reservoir_State_Park"
+            scatter_x = "Percent_Change_per_year"
+            scatter_y = "Rate_of_Change_vs_Prineville_Reservoir_State_Park"
+        else:
+            bar_metric = "x_brighter_than_darkest_night_sky"
+            scatter_x = "median_brightness_mag_arcsec2"
+            scatter_y = "x_brighter_than_darkest_night_sky"
+
+    # Legend string for plot
+    if meas_type in ['clear_nights_brightness', 'cloudy_nights_brightness']:
+        legend_str = "**Skyglow level**: 🟥 Worst  🟨 Medium  🟩 Pristine"
+    elif meas_type == 'milky_way_visibility':
+        legend_str = "**Milky Way visibility**: 🟥 Worst  🟨 Medium  🟩 Best"
+    elif meas_type == "% clear nights":
+        legend_str = "**Clear nights**: 🟥 Least  🟨 Medium  🟩 Highest"
+    elif meas_type == "long_term_trends":
+        legend_str = "**Disappearing starry night skies**: 🟥 Fastest  🟨 Medium  🟩 Slowest"
+
+
+    if meas_type in ["clear_nights_brightness",'cloudy_nights_brightness',"long_term_trends"]:
+        legend_order = ['Green', 'Yellow', 'Red']
+    else:
+        legend_order = ['Red', 'Yellow', 'Green']
+
+    if meas_type in ['clear_nights_brightness', 'cloudy_nights_brightness']:
+        vline = 21.2
+    else:
+        vline = None
     
-    # Search functionality
-    search_term = st.text_input("Search sites:", placeholder="Enter site name...")
-    if search_term:
-        display_df = display_df[display_df['site_name'].str.contains(search_term, case=False, na=False)]
-    
-    st.dataframe(display_df, use_container_width=True, height=400)
-    
-    # Footer
+    y_col_print_dict = {
+        "ratio_index": "Ratio of linear scale SQM flux data",
+        "x_brighter_than_darkest_night_sky": "Night sky brightness relative compared to the darkest site",
+        "percent_clear_night_samples_all_months": "% Clear Nights over all months",
+        "Rate_of_Change_vs_Prineville_Reservoir_State_Park": "Rate of Change vs. Prineville Reservoir State Park",
+        "Percent_Change_per_year": "Percent Change per year",
+        "median_brightness_mag_arcsec2": "Median Brightness (mag/arcsec²)",
+        "difference_index_mag_arcsec2": "Difference Index (mag/arcsec²)"
+    }
+
+
+    # Load all raw data from CSVs using the processor
+    raw_dfs = load_data(data_dir=project_root / "shared" / "data")
+    # data-frame containing results to show on dash-board
+    data_df = raw_dfs[meas_type_table]
+    # Load geocode CSV and merge with selected data
+    geocode_df = raw_dfs['geocode'].copy()
+    # Merge geocode data with main data
+    final_data_df = pd.merge(data_df, geocode_df, on="site_name", how="left")
+    if meas_type in ['clear_nights_brightness', 'cloudy_nights_brightness']:
+        final_data_df['DarkSkyCertified'] = 'NO'
+        final_data_df.loc[final_data_df['median_brightness_mag_arcsec2'] > 21.2, 'DarkSkyCertified'] = 'YES'
+
+    main_col_for_map_dict = {
+        "clear_nights_brightness": "x_brighter_than_darkest_night_sky",
+        "cloudy_nights_brightness": "x_brighter_than_darkest_night_sky",
+        "long_term_trends": "Rate_of_Change_vs_Prineville_Reservoir_State_Park",
+        "milky_way_visibility": "ratio_index",
+        "% clear nights": "percent_clear_night_samples_all_months"
+    }
+    cmap = create_oregon_map(
+        sites_df=final_data_df,
+        main_col=main_col_for_map_dict[meas_type],
+        legend_order=legend_order
+    )
+
+    # Layout: two wide columns (map | chart), both use full container width
+    col_left, col_right = st.columns([0.5, 0.5], gap="small")
+    with col_left:
+        st.header("SQM measurement site Map")
+        st.markdown(legend_str)
+        st_folium(cmap, height=300, width=500)
+    with col_right:
+        st.header("Worst 20 sites")
+        fig_bar = create_ranking_chart(
+            sites_df=final_data_df,
+            y_col=bar_metric,
+            title=y_col_print_dict[bar_metric]
+        )
+        st.plotly_chart(
+            fig_bar,
+            height=1500,
+            width=500,
+            use_container_width=True,
+            key="top_20"
+        )
+
+    # Second row: Empty (left), Scatter plot (right)
+    row2_left, row2_middle, row2_right = st.columns([0.3, 0.2, 0.5], gap="small")
+    if meas_type != "% clear nights":
+        with row2_left:
+            st.subheader(f"{y_col_print_dict[scatter_x]} vs. {y_col_print_dict[scatter_y]}")
+            fig_scatter = create_interactive_2d_plot(
+                df=final_data_df,
+                x_col=scatter_x,
+                y_col=scatter_y,
+                vline=vline,
+            )
+            st.plotly_chart(fig_scatter)
+    with row2_right:
+        st.header("Pristine 20 sites")
+        fig_bar2 = create_ranking_chart(
+            sites_df=final_data_df,
+            y_col=bar_metric,
+            title=y_col_print_dict[bar_metric],
+            key="bottom_20"
+        )
+        st.plotly_chart(fig_bar2, height=1500, width=500, use_container_width=True, key="bottom_20")
+
+    # Footer with project info
     st.markdown("---")
     st.markdown("""
-    **Framework**: Streamlit | **Data Source**: DarkSky Oregon SQM Network Technical Report Edition #9  
-    **Repository**: [GitHub Link] | **Contact**: AI Tech Professional Volunteer
+    **Framework**: Streamlit | **Data Source**: [DarkSky Oregon SQM Network Technical Report Edition #9](https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf)
+    **Repository**:  https://github.com/ViditAg/darksky-oregon-dashboard | **Contact**: AI Tech Professional Volunteer
     """)
 
 if __name__ == "__main__":

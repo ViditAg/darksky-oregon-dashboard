@@ -3,6 +3,15 @@
 """
 Flask API implementation of Oregon Dark Sky Dashboard
 """
+"""
+Flask implementation of the Oregon Dark Sky Dashboard
+
+This app loads all site and measurement data from CSVs using OregonSQMProcessor, sets up Flask routes, and renders the dashboard UI:
+    - Loads site and measurement data from CSVs
+    - Provides API endpoints for site data, metrics, map, and ranking chart
+    - Renders the main dashboard page and handles user requests
+    - Returns JSON or HTML responses for all dashboard features
+"""
 
 from flask import Flask, render_template, jsonify, request
 import pandas as pd

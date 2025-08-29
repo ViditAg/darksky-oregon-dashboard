@@ -47,6 +47,16 @@ custom_styles = {
     'header': {
         'backgroundColor': '#1e3a8a',
         'color': 'white',
+"""
+Dash implementation of the Oregon Dark Sky Dashboard
+
+This app loads all site and measurement data from CSVs using OregonSQMProcessor, sets up the Dash layout, and defines all callbacks for interactivity:
+    - Loads site and measurement data from CSVs
+    - Provides controls for night type, metric selection, and sorting
+    - Displays key statistics, interactive map, and ranking chart
+    - Shows a searchable, filterable data table of all sites
+    - Handles all Dash callback logic for UI updates
+"""
         'padding': '20px',
         'marginBottom': '20px',
         'borderRadius': '8px'
