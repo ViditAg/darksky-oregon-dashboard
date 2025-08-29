@@ -1,3 +1,5 @@
+# functions to define visualizations
+
 # importing neccessary libraries
 import pandas as pd
 import folium
