@@ -2,8 +2,8 @@
 
 ## Project Overview
 
-This project provides interactive dashboards for the Oregon Dark Sky SQM Network data, supporting three web frameworks:
-- **Streamlit** (main dashboard, recommended)
+This project provides interactive dashboards for the [Oregon Dark Sky SQM Network data](https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf), supporting three web frameworks:
+- **Streamlit** https://darksky-oregon-dashboard.streamlit.app/
 - **Flask** (API and web dashboard)
 - **Dash** (Dash/Plotly dashboard)
 
