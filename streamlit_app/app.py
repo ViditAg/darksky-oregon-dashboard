@@ -1,8 +1,4 @@
-"""
-Streamlit implementation of Oregon Dark Sky Dashboard
-"""
-
-# importing neccessary libraries
+# importing necessary libraries
 import sys
 from pathlib import Path
 import pandas as pd
@@ -10,7 +6,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from streamlit_folium import st_folium
-
 
 # local import
 # Add project root to path so 'shared' package is importable
@@ -52,16 +47,42 @@ def load_data(data_dir: Path | None = None):
         st.error(f"Failed to load data: {e}")
         return None
 
+
+
+
 def main():
+    """
+    Main function to run the Streamlit app.
+    """
+    # Set Streamlit page layout to wide for best use of screen space
+    st.set_page_config(
+        layout="wide",
+        page_title="Oregon Dark Sky Dashboard",
+    )
+    # Custom CSS for top margin adjustment
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            padding-top: 1rem !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        header { margin-top: 0 !important; }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
     # Set dashboard title and description
     st.title("[Dark Sky Oregon](https://www.darkskyoregon.org/) - Skyglow Dashboard")
-    st.markdown("**Interactive Light Pollution Visualization")
-
-    # Load all raw data from CSVs using the processor
-    raw_dfs = load_data(data_dir=project_root / "shared" / "data")
 
     # Sidebar controls for user interaction
-    st.sidebar.header("Dashboard Controls")
+    st.sidebar.info(
+        """**[Skyglow](https://en.wikipedia.org/wiki/Skyglow)**: Diffused unnatural luminance of the night sky, 
+        caused by artificial lights scattering in the atmosphere and obscuring
+         stars and celestial objects."""
+    )
 
     # Measurement type selection (for future extensibility)
     meas_type_dict = {
@@ -71,56 +92,86 @@ def main():
         "milky_way_visibility": "milky_way",
         "% clear nights": "cloud_coverage"
     }
+    question_dict = {
+        "clear_nights_brightness": "Where in Oregon is the Night Sky Most Pristine? And, Most Light Polluted? **(Clear nights)**",
+        "cloudy_nights_brightness": "Where in Oregon is the Night Sky Most Pristine? And, Most Light Polluted? **(Cloudy nights)**",
+        "long_term_trends": "Where are the starry night skies disappearing the fastest in Oregon?",
+        "milky_way_visibility": "Where does the Milky Way stand out best in Oregon?",
+        "% clear nights": "Where in Oregon are the clearest – least cloudy – night skies?"
+    }
     meas_type = st.sidebar.radio(
-        "Measurement Type",
+        "**Question?**",
         list(meas_type_dict.keys()),
+        format_func=lambda x: question_dict[x],
         help="Toggle between measurements types"
     )
     # save selected measurement type in a variable
     meas_type_table = meas_type_dict[meas_type]
     
-    # data-frame containing results to show on dash-board
-    data_df = raw_dfs[meas_type_table]
-
-    # Load geocode CSV and merge with selected data
-    geocode_df = raw_dfs['geocode'].copy()
-
-    final_data_df = pd.merge(data_df, geocode_df, on="site_name", how="left")  
-    print(final_data_df)
-    # Dynamic column selection based on plot type
-    numeric_cols = [
-        col for col in final_data_df.columns if pd.api.types.is_numeric_dtype(final_data_df[col]) and col not in ["latitude", "longitude"]
-    ]
     # only show bar chart when showing % of clear nights
     if meas_type == "% clear nights":
         plot_type = "Bar Chart"
+        bar_metric = "percent_clear_night_samples_all_months"
     else:
         # Plot type selection
-        plot_type = st.sidebar.radio(
-            "Plot Type",
-            ["Bar Chart", "Scatter Plot"],
-            help="Choose the type of visualization to display"
-        )
-    
-    if plot_type == "Bar Chart":
-        bar_metric = st.sidebar.selectbox(
-            "Bar Chart Metric",
-            numeric_cols,
-            help="Choose which metric to visualize in the ranking bar chart"
-        )
-    else:
-        scatter_x = st.sidebar.selectbox(
-            "Scatter Plot X Axis", numeric_cols, index=0
-        )
-        scatter_y = st.sidebar.selectbox(
-            "Scatter Plot Y Axis", numeric_cols, index=1 if len(numeric_cols) > 1 else 0
-        )
-        scatter_color = st.sidebar.selectbox("Scatter Plot Color (optional)", [None] + numeric_cols, index=0)
+        plot_type = "Bar+Scatter Chart"
+        if meas_type == "milky_way_visibility":
+            bar_metric = "ratio_index"
+            scatter_x = "difference_index_mag_arcsec2"
+            scatter_y = "ratio_index"
+        elif meas_type == "long_term_trends":
+            bar_metric = "Rate_of_Change_vs_Prineville_Reservoir_State_Park"
+            scatter_x = "Percent_Change_per_year"
+            scatter_y = "Rate_of_Change_vs_Prineville_Reservoir_State_Park"
+        else:
+            bar_metric = "x_brighter_than_darkest_night_sky"
+            scatter_x = "median_brightness_mag_arcsec2"
+            scatter_y = "x_brighter_than_darkest_night_sky"
 
-    # Layout: two columns (map | chart)
-    col_map, col_plot = st.columns([1.1, 1])
+    # Legend string for plot
+    if meas_type in ['clear_nights_brightness', 'cloudy_nights_brightness']:
+        legend_str = "**Skyglow level**: 🟥 Worst  🟨 Medium  🟩 Pristine"
+    elif meas_type == 'milky_way_visibility':
+        legend_str = "**Milky Way visibility**: 🟥 Worst  🟨 Medium  🟩 Best"
+    elif meas_type == "% clear nights":
+        legend_str = "**Clear nights**: 🟥 Least  🟨 Medium  🟩 Highest"
+    elif meas_type == "long_term_trends":
+        legend_str = "**Disappearing starry night skies**: 🟥 Fastest  🟨 Medium  🟩 Slowest"
+
+
+    if meas_type in ["clear_nights_brightness",'cloudy_nights_brightness',"long_term_trends"]:
+        legend_order = ['Green', 'Yellow', 'Red']
+    else:
+        legend_order = ['Red', 'Yellow', 'Green']
+
+    if meas_type in ['clear_nights_brightness', 'cloudy_nights_brightness']:
+        vline = 21.2
+    else:
+        vline = None
     
-    # add folium map here
+    y_col_print_dict = {
+        "ratio_index": "Ratio of linear scale SQM flux data",
+        "x_brighter_than_darkest_night_sky": "Night sky brightness relative compared to the darkest site",
+        "percent_clear_night_samples_all_months": "% Clear Nights over all months",
+        "Rate_of_Change_vs_Prineville_Reservoir_State_Park": "Rate of Change vs. Prineville Reservoir State Park",
+        "Percent_Change_per_year": "Percent Change per year",
+        "median_brightness_mag_arcsec2": "Median Brightness (mag/arcsec²)",
+        "difference_index_mag_arcsec2": "Difference Index (mag/arcsec²)"
+    }
+
+
+    # Load all raw data from CSVs using the processor
+    raw_dfs = load_data(data_dir=project_root / "shared" / "data")
+    # data-frame containing results to show on dash-board
+    data_df = raw_dfs[meas_type_table]
+    # Load geocode CSV and merge with selected data
+    geocode_df = raw_dfs['geocode'].copy()
+    # Merge geocode data with main data
+    final_data_df = pd.merge(data_df, geocode_df, on="site_name", how="left")
+    if meas_type in ['clear_nights_brightness', 'cloudy_nights_brightness']:
+        final_data_df['DarkSkyCertified'] = 'NO'
+        final_data_df.loc[final_data_df['median_brightness_mag_arcsec2'] > 21.2, 'DarkSkyCertified'] = 'YES'
+
     main_col_for_map_dict = {
         "clear_nights_brightness": "x_brighter_than_darkest_night_sky",
         "cloudy_nights_brightness": "x_brighter_than_darkest_night_sky",
@@ -130,31 +181,52 @@ def main():
     }
     cmap = create_oregon_map(
         sites_df=final_data_df,
-        main_col=main_col_for_map_dict[meas_type]
+        main_col=main_col_for_map_dict[meas_type],
+        legend_order=legend_order
     )
 
-    with col_map:
-        st.subheader("SQM measurement site Map")
-        st_folium(cmap, height=600, use_container_width=True)
+    # Layout: two wide columns (map | chart), both use full container width
+    col_left, col_right = st.columns([0.5, 0.5], gap="small")
+    with col_left:
+        st.header("SQM measurement site Map")
+        st.markdown(legend_str)
+        st_folium(cmap, height=300, width=500)
+    with col_right:
+        st.header("Worst 20 sites")
+        fig_bar = create_ranking_chart(
+            sites_df=final_data_df,
+            y_col=bar_metric,
+            title=y_col_print_dict[bar_metric]
+        )
+        st.plotly_chart(
+            fig_bar,
+            height=1500,
+            width=500,
+            use_container_width=True,
+            key="top_20"
+        )
 
-    with col_plot:
-        if plot_type == "Bar Chart":
-            st.subheader("Ranking")
-            fig_bar = create_ranking_chart(
-                sites_df=final_data_df,
-                y_col=bar_metric
-            )
-            st.plotly_chart(fig_bar, use_container_width=True)
-        else:
-            st.subheader("Scatter Plot")
+    # Second row: Empty (left), Scatter plot (right)
+    row2_left, row2_middle, row2_right = st.columns([0.3, 0.2, 0.5], gap="small")
+    if meas_type != "% clear nights":
+        with row2_left:
+            st.subheader(f"{y_col_print_dict[scatter_x]} vs. {y_col_print_dict[scatter_y]}")
             fig_scatter = create_interactive_2d_plot(
                 df=final_data_df,
                 x_col=scatter_x,
                 y_col=scatter_y,
-                title=f"{scatter_y} vs {scatter_x}"
+                vline=vline,
             )
-            st.plotly_chart(fig_scatter, use_container_width=True)
-    
+            st.plotly_chart(fig_scatter)
+    with row2_right:
+        st.header("Pristine 20 sites")
+        fig_bar2 = create_ranking_chart(
+            sites_df=final_data_df,
+            y_col=bar_metric,
+            title=y_col_print_dict[bar_metric],
+            key="bottom_20"
+        )
+        st.plotly_chart(fig_bar2, height=1500, width=500, use_container_width=True, key="bottom_20")
 
     # Footer with project info
     st.markdown("---")
