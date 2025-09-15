@@ -34,7 +34,7 @@ raw_dfs = processor.load_raw_data()
 # here we define the custom CSS styles for various DASH components
 custom_styles = {
     'header': {
-        'backgroundColor': "#041d61",
+        'backgroundColor': "#263C77",
         'color': 'white',
 """
 Dash implementation of the Oregon Dark Sky Dashboard
