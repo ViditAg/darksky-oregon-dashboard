@@ -1,5 +1,9 @@
 """
 Flask entrypoint for Oregon Dark Sky Dashboard.
+
+- This is the entrypoint for your Flask app.
+- It creates the Flask application and registers all routes from routes.py using the register_routes function.
+- When you run this file, it starts the Flask server.
 """
 from flask import Flask
 from routes import register_routes

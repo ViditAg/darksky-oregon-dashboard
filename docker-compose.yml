@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: docker/flask/Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./flask_api:/app/flask_api
+      - ./shared:/app/shared
+      - ./flask_api/templates:/app/flask_api/templates
+    environment:
+      - FLASK_APP=flask_api/app.py
+      - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_ENV=production
+    restart: unless-stopped
+  dash:
+    build:
+      context: .
+      dockerfile: docker/dash/Dockerfile
+    ports:
+      - "8050:8050"
+    volumes:
+      - ./dash_app:/app/dash_app
+      - ./shared:/app/shared
+      - ./dash_app/assets:/app/dash_app/assets
+    environment:
+      - DASH_ENV=production
+    restart: unless-stopped
+  streamlit:
+    build:
+      context: .
+      dockerfile: docker/streamlit/Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./streamlit_app:/app/streamlit_app
+      - ./shared:/app/shared
+    environment:
+      - STREAMLIT_ENV=production
+    restart: unless-stopped

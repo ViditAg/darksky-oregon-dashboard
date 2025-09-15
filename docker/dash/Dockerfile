@@ -1,0 +1,17 @@
+# Dockerfile for Dash Oregon Dark Sky Dashboard
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY dash_app/ ./dash_app/
+COPY shared/ ./shared/
+COPY dash_app/assets/ ./dash_app/assets/
+
+EXPOSE 8050
+
+CMD ["python", "dash_app/app.py"]

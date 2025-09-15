@@ -301,4 +301,8 @@ def update_dashboard(meas_type):
 # Run the Dash app when the script is executed directly from the command line
 if __name__ == "__main__":
     # Start the server
-    app.run(debug=True)
+    app.run(
+        debug=True,
+        host="0.0.0.0",
+        port=8050
+    )
