@@ -5,7 +5,7 @@ Complete Dash implementation of Oregon Dark Sky Dashboard
 import sys
 from pathlib import Path
 import dash
-from dash import dcc, html, Input, Output, callback, dash_table
+from dash import dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
@@ -17,7 +17,7 @@ if str(project_root) not in sys.path:
 
 from shared.utils.configs import get_meas_type_config, meas_type_dict
 from shared.utils.data_processing import OregonSQMProcessor
-from shared.utils.visualizations import create_interactive_2d_plot, create_oregon_map, create_ranking_chart, get_folium_html, get_plotly_html
+from shared.utils.visualizations import create_interactive_2d_plot, create_oregon_map, create_ranking_chart, get_folium_html
 
 # Initialize Dash app with Bootstrap theme
 app = dash.Dash(
@@ -134,11 +134,11 @@ app.layout = dbc.Container(
                 dbc.Col(
                     [
                         html.H5(
-                            "Worst 20 sites",
+                            "Ranking sites",
                             className="mb-3"
                         ),
                         dcc.Graph(
-                            id='ranking-chart-top20',
+                            id='ranking-chart',
                             style={'height': '400px'})
                     ],
                     # width=4 removed; if this is dbc.Col, width is valid. If html.Div, use style.
@@ -172,24 +172,9 @@ app.layout = dbc.Container(
                         )
                     ],
                     # width=4 removed; if this is dbc.Col, width is valid. If html.Div, use style.
-                ),
-                # Bar chart column
-                dbc.Col(
-                    [
-                        html.H5(
-                            "Pristine 20 sites",
-                            className="mb-3"
-                        ),
-                        dcc.Graph(
-                            id='ranking-chart-bottom20',
-                            style={'height': '400px'}
-                        )
-                    ],
-                    # width=4 removed; if this is dbc.Col, width is valid. If html.Div, use style.
                 )
             ]
         ),
-
         # Footer
         html.Hr(), # Divider Horizontal line
         # Footer content
@@ -225,8 +210,7 @@ app.layout = dbc.Container(
     [
         Output('oregon-map', 'srcDoc'),
         Output('map-legend', 'children'),
-        Output('ranking-chart-top20', 'figure'),
-        Output('ranking-chart-bottom20', 'figure'),
+        Output('ranking-chart', 'figure'),
         Output('scatter-plot', 'figure'),
         Output('scatter-plot-div', 'style'),
         Output('scatter-plot-title', 'children')
@@ -245,17 +229,11 @@ def update_dashboard(meas_type):
     """
     # data-table based on selected measurement type
     meas_type_config = get_meas_type_config(meas_type)
-    # read data into data-frame
-    data_df = raw_dfs[meas_type_config['raw_df_key']]
-    # read geocode data into data-frame
-    geocode_df = raw_dfs['geocode'].copy()
-    # merge data-frames
-    final_data_df = data_df.merge(geocode_df, on="site_name", how="left")
-    # add a column for DarkSky certification
-    if meas_type in ['clear_nights_brightness', 'cloudy_nights_brightness']:
-        final_data_df['DarkSkyCertified'] = 'NO'
-        final_data_df.loc[final_data_df['median_brightness_mag_arcsec2'] > 21.2, 'DarkSkyCertified'] = 'YES'
 
+    # Initialize processor and load data
+    processor = OregonSQMProcessor(data_dir=project_root / "shared" / "data")
+    # Load raw data
+    final_data_df = processor.load_processed_data(raw_df_key=meas_type_config['raw_df_key'])
     
     # Create Oregon map using custom function based on Folium
     cmap = create_oregon_map(
@@ -274,12 +252,6 @@ def update_dashboard(meas_type):
         title=meas_type_config['y_col_print']
     )
 
-    fig_bar2 = create_ranking_chart(
-            sites_df=final_data_df,
-            y_col=meas_type_config['bar_metric'],
-            title=meas_type_config['bar_metric'],
-            key="bottom_20"
-        )
     scatterplot_tuple = None
     if meas_type != "% clear nights":
         scatter_title = meas_type_config['scatter_title']
@@ -295,7 +267,7 @@ def update_dashboard(meas_type):
         fig_scatter = go.Figure()
         fig_scatter_style = {'display': 'none'}
     
-    return map_fig, meas_type_config['legend_str'], fig_bar, fig_bar2, fig_scatter, fig_scatter_style, scatter_title
+    return map_fig, meas_type_config['legend_str'], fig_bar, fig_scatter, fig_scatter_style, scatter_title
 
 
 # Run the Dash app when the script is executed directly from the command line

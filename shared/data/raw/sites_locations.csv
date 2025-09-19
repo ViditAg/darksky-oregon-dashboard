@@ -1,4 +1,4 @@
-Name,Install Number, Address
+Name,Install_Number
 Awbrey Butte,1
 Pine Mountain Observatory,2
 Prineville Reservoir State Park,3
@@ -55,8 +55,8 @@ Westmoreland Park,53
 Powell Butte Park,54
 Redmond West,55
 Hoyt Arboretum,56
-WCMGA Education Garden at PCC Rock Creek,57
-WCMGA Learning Garden at Jenkins Estate,58
+PCC Rock Creek,57
+Jenkins Estate,58
 Hyatt Lake,59
 Eagle Crest,60
 Deschutes River SRA,61
