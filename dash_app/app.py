@@ -24,7 +24,8 @@ from shared.utils.visualizations import create_interactive_2d_plot, create_orego
 # Initialize Dash app with Bootstrap theme
 app = dash.Dash(
     __name__, 
-    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP]
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
+    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}]
 )
 # Set the title for the app
 app.title = "Oregon Dark Sky Dashboard - Dash"
@@ -367,7 +368,7 @@ def get_site_info_text(df, meas_type, clicked_sites):
         elif meas_type == "long_term_trends":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Rate of Change in Night Sky Brightness vs Prineville Reservoir State Park - a certified Dark Sky Park: {rate_of_change:.4f}".format(
+                "Rate of Change in Night Sky Brightness vs Prineville Reservoir State Park - a certified Dark Sky Park: {rate_of_change:.2f}".format(
                     rate_of_change=row['Rate_of_Change_vs_Prineville_Reservoir_State_Park']
                     ),
                 "Trendline Slope (regression fit of change over time scaled by a factor of 10000): {regression_slope_x10000:.2f}".format(
