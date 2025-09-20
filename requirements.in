@@ -2,7 +2,6 @@
 streamlit
 dash
 dash-bootstrap-components
-flask
 
 # Data processing
 pandas
@@ -14,11 +13,11 @@ geocoder
 plotly
 folium
 streamlit-folium
+streamlit-plotly-events
 
 # Utilities
 requests
 Pillow
-python-dotenv
 
 # Testing and development
 jupyter
