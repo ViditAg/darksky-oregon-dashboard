@@ -1,66 +1,66 @@
-site_name,latitude,longitude
-Awbrey Butte,44.0780648,-121.3306357
-Pine Mountain Observatory,43.79170209999999,-120.9410087
-Prineville Reservoir State Park,44.1304371,-120.7230752
-Hopservatory,44.0552973,-121.2609828
-Oregon Observatory Sunriver,43.8852935,-121.4477866
-Mosier Ranch,45.6834528,-121.397295
-Madras,44.6334544,-121.1294872
-Black Butte Meadow,43.5692872,-123.0775721
-Tetherow,44.0386482,-121.3665045
-Rimrock Ranch,44.8531827,-119.6785669
-Sisters High School,44.2963924,-121.5760991
-Mosier Dry Creek,45.67823,-121.38521
-Camp Hancock,43.8041334,-120.5542012
-Alvord Desert,42.5354464,-118.4560133
-Malheur Field Station,43.2440074,-118.8952263
-Raven Ridge,43.281428,-120.6711877
-Cottonwood Canyon State Park,45.4592134,-120.4320753
-Stub Stewart State Park,45.7384673,-123.1887481
-Hart Mountain,42.459654,-119.741381
-Playa Summer Lake,42.8056787,-120.7914881
-Shooting Star ranch,43.4423548,-117.982861
-Summit Prairie,43.8041334,-120.5542012
-Talent,42.2456844,-122.7886462
-Halfway,44.880715,-117.1146173
-Wallowa Lake State Park,45.2828092,-117.2138583
-Black Butte Ranch House,44.37559,-121.64164
-Sisters East,44.2909491,-121.5492118
-Crooked River Ranch,44.4251683,-121.2419539
-Oregon Caves National Monument,44.819314,-119.4211007
-Grizzly Mountain,44.4381798,-120.9555863
-Awbrey Butte Chimney,44.0780648,-121.3306357
-Bandon,43.1189978,-124.408448
-Lowell NE,44.9916017,-123.0189742
-Mt Pisgah Arboretum,44.0068786,-122.9803488
-Junction City,44.21929009999999,-123.2056484
-Portland SW,45.515232,-122.6783853
-Portland SE,45.515232,-122.6783853
-Crater Lake National Park,42.9294762,-122.1279394
-Neskowin,45.1074231,-123.9836635
-Humbug Mtn State Park,42.69017119999999,-124.4391759
-Arizona Beach State Park,42.6169677,-124.3954313
-Cape Blanco State Park,42.8376089,-124.5639997
-Camas Sno Park,42.2264133,-120.2325026
-High Desert Museum,43.9661759,-121.3419191
-Lava Butte,43.917857,-121.356033
-Hart Mountain Camp,42.459654,-119.741381
-Manzanita,45.7184398,-123.9351354
-Jordan Craters,43.111822,-117.41599
-Antelope,44.9106819,-120.7228173
-Eugene Downtown,44.0465192,-123.0865811
-Paulina Lake Visitor Center,43.7211206,-121.2575397
-Lava Cast Forest,43.8001193,-121.2914132
-Westmoreland Park,45.470639,-122.640966
-Powell Butte Park,45.4906961,-122.4969916
-Redmond West,44.2726203,-121.1739212
-Hoyt Arboretum,45.5162616,-122.7152124
-WCMGA Education Garden at PCC Rock Creek,45.5510497,-122.8741537
-WCMGA Learning Garden at Jenkins Estate,45.4609824,-122.8914628
-Hyatt Lake,42.1663651,-122.4574669
-Eagle Crest,44.264319,-121.3063364
-Deschutes River SRA,44.66243211618002,-121.3208823296606
-Beacon Rock State Park,43.8041334,-120.5542012
-Hines Middle School,43.563337,-119.087559
-Rooster Rock State Park,45.54653769999999,-122.2282931
-Viento State Park,45.6957691,-121.6660362
+site_name,latitude,longitude,Elevation_in_meters
+Awbrey Butte,44.08,-121.33,1272.0
+Pine Mountain Observatory,43.79,-120.94,1912.0
+Prineville Reservoir State Park,44.14,-120.73,1068.0
+Hopservatory,44.06,-121.26,1108.0
+Oregon Observatory Sunriver,43.89,-121.45,1270.0
+Mosier Ranch,45.67,-121.34,280.0
+Madras,44.64,-121.1,747.0
+Black Butte Meadow,44.37,-121.66,1020.0
+Tetherow,44.03,-121.37,1183.0
+Rimrock Ranch,44.39,-121.41,872.0
+Sisters High School,44.3,-121.58,972.0
+Mosier Dry Creek,45.67,-121.34,280.0
+Camp Hancock,44.92,-120.43,483.0
+Alvord Desert,42.48,-118.53,1226.0
+Malheur Field Station,43.25,-118.89,1256.0
+Raven Ridge,42.76,-118.95,1491.0
+Cottonwood Canyon State Park,45.49,-120.45,179.0
+Stub Stewart State Park,45.75,123.18,380.0
+Hart Mountain,42.54,-119.77,1404.0
+Playa Summer Lake,42.81,-120.79,1273.0
+Shooting Star ranch,45.46,-120.14,501.0
+Summit Prairie,44.36,-120.19,1372.0
+Talent,42.22,-122.79,568.0
+Halfway,44.88,-117.12,814.0
+Wallowa Lake State Park,45.28,-117.21,1347.0
+Black Butte Ranch House,44.37,-121.66,1020.0
+Sisters East,44.29,-121.54,970.0
+Crooked River Ranch,44.41,-121.27,833.0
+Oregon Caves National Monument,42.11,-123.4,1113.0
+Grizzly Mountain,44.41,-120.97,1158.0
+Awbrey Butte Chimney,44.08,-121.33,1272.0
+Bandon,43.02,-124.41,46.0
+Lowell NE,43.93,-122.77,403.0
+Mt Pisgah Arboretum,44.01,-122.98,159.0
+Junction City,44.22,-123.22,98.0
+Portland SW,45.47,-122.71,142.0
+Portland SE,45.49,-122.62,55.0
+Crater Lake National Park,42.89,-122.14,1945.0
+Neskowin,45.14,-123.97,76.0
+Humbug Mtn State Park,42.69,-124.44,8.0
+Arizona Beach State Park,42.61,-124.4,7.0
+Cape Blanco State Park,42.84,-124.54,4.0
+Camas Sno Park,42.23,-120.23,1740.0
+High Desert Museum,43.97,-121.34,1232.0
+Lava Butte,43.92,-121.36,1533.0
+Hart Mountain Camp,42.54,-119.77,1404.0
+Manzanita,45.72,-123.94,4.0
+Jordan Craters,43.16,-117.39,1355.0
+Antelope,44.91,-120.73,824.0
+Eugene Downtown,44.05,-123.08,454.0
+Paulina Lake Visitor Center,43.71,-121.28,1947.0
+Lava Cast Forest,43.82,-121.29,1771.0
+Westmoreland Park,45.47,-122.64,21.0
+Powell Butte Park,45.49,-122.5,601.0
+Redmond West,44.29,-121.24,869.0
+Hoyt Arboretum,45.51,-122.72,264.0
+PCC Rock Creek,45.34,-122.51,80.0
+Jenkins Estate,45.27,-122.53,167.0
+Hyatt Lake,42.17,-122.46,1536.0
+Eagle Crest,44.27,-121.29,946.0
+Deschutes River SRA,45.63,-120.91,62.0
+Beacon Rock State Park,45.63,-122.03,19.0
+Hines Middle School,43.56,-119.08,1268.0
+Rooster Rock State Park,45.55,-122.23,19.0
+Viento State Park,45.7,-121.67,31.0

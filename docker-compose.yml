@@ -1,0 +1,82 @@
+version: '3.8'  # Docker Compose file version
+services:
+  # Dash dashboard service
+  dash:
+    build:
+      context: .  # Use current directory as build context
+      dockerfile: docker/dash/Dockerfile  # Path to Dash Dockerfile
+    ports:
+      - "8050:8050"  # Dash runs on port 8050
+    volumes:
+      - ./dash_app:/app/dash_app  # Dash app code
+      - ./shared:/app/shared  # Shared code/data
+    environment:
+      - DASH_ENV=production  # Production mode
+    restart: unless-stopped  # Restart container unless stopped
+
+  # Streamlit dashboard service
+  streamlit:
+    build:
+      context: .  # Use current directory as build context
+      dockerfile: docker/streamlit/Dockerfile  # Path to Streamlit Dockerfile
+    ports:
+      - "8501:8501"  # Streamlit runs on port 8501
+    volumes:
+      - ./streamlit_app:/app/streamlit_app  # Streamlit app code
+      - ./shared:/app/shared  # Shared code/data
+    environment:
+      - STREAMLIT_ENV=production  # Production mode
+    restart: unless-stopped  # Restart container unless stopped
+
+  # Test services for running unit tests (use --profile test)
+  test-data-processing:
+    build:
+      context: .  # Use current directory as build context
+      dockerfile: docker/dash/Dockerfile  # Use Dash Dockerfile for tests
+    command: pytest tests/unit/test_data_processing.py  # Run pytest on data processing tests
+    volumes:
+      - ./shared:/app/shared  # Shared code/data
+      - ./tests:/app/tests  # Test code
+    environment:
+      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+    profiles:
+      - test  # Test profile
+
+  test-visualizations:
+    build:
+      context: .  # Use current directory as build context
+      dockerfile: docker/dash/Dockerfile  # Use Dash Dockerfile for tests
+    command: pytest tests/unit/test_visualizations.py  # Run pytest on visualizations tests
+    volumes:
+      - ./shared:/app/shared  # Shared code/data
+      - ./tests:/app/tests  # Test code
+    environment:
+      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+    profiles:
+      - test  # Test profile
+
+  test-dash:
+    build:
+      context: .  # Use current directory as build context
+      dockerfile: docker/dash/Dockerfile  # Use Dash Dockerfile for tests
+    command: pytest tests/unit/test_dash_app.py  # Run pytest on Dash tests
+    volumes:
+      - ./shared:/app/shared  # Shared code/data
+      - ./tests:/app/tests  # Test code
+    environment:
+      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+    profiles:
+      - test  # Test profile
+
+  test-streamlit:
+    build:
+      context: .  # Use current directory as build context
+      dockerfile: docker/streamlit/Dockerfile  # Use Streamlit Dockerfile for tests
+    command: pytest tests/unit/test_streamlit_app.py  # Run pytest on Streamlit tests
+    volumes:
+      - ./shared:/app/shared  # Shared code/data
+      - ./tests:/app/tests  # Test code
+    environment:
+      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+    profiles:
+      - test  # Test profile
