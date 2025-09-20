@@ -8,7 +8,7 @@ Defining configuration utilities for measurement types:
 meas_type_dict = {
     "clear_nights_brightness": {
         "data_key": "clear_measurements",
-        "Question_text": "Where in Oregon is the Night Sky Most Pristine? And, Most Light Polluted? **(Clear nights)**",
+        "Question_text": "Where in Oregon is the Night Sky most pristine and, most light polluted during Clear nights?",
         "bar_chart_title": "Ranking sites by how brighter they are compared to the darkest night sky (Hart Mountain)",
         "bar_chart_text" : "by how many times the night sky at that site is brighter than at Hart Mountain",
         "bar_chart_y_col": "x_brighter_than_darkest_night_sky",
@@ -22,7 +22,7 @@ meas_type_dict = {
     },
     "cloudy_nights_brightness": {
         "data_key": "cloudy_measurements",
-        "Question_text": "Where in Oregon is the Night Sky Most Pristine? And, Most Light Polluted? **(Cloudy nights)**",
+        "Question_text": "Where in Oregon is the Night Sky most pristine and, most light polluted during Cloudy nights?",
         "bar_chart_title": "Ranking sites by how brighter they are compared to the darkest night sky (Crater Lake)",
         "bar_chart_text" : "by how many times the night sky at that site is brighter than at Crater Lake",
         "bar_chart_y_col": "x_brighter_than_darkest_night_sky",

@@ -97,3 +97,28 @@ As we get more data collected, we need to update or swap CSV data files in `shar
 - If you add new columns or change structure, update shared/utils/data_processing.py and related tests.
 - If needed, add or update tests in `tests/unit/` to validate data loading and processing with the new CSVs.
 
+# Deployment Guide
+
+## Local Docker Deployment
+- Build and run any app using Docker Compose:
+  ```bash
+  docker-compose build dash  # or streamlit
+  docker-compose up dash     # or streamlit
+  ```
+- See `docker/` folder for Dockerfiles and per-app README files.
+
+## Cloud Deployment
+- **Streamlit Cloud:**
+  - Connect your GitHub repo at https://streamlit.io/cloud
+  - Free for public projects, quick setup
+- **Render.com:**
+  - Connect your repo, choose Python web service or Docker
+  - Deploy using the repository's Dockerfile
+  - Free tier: 750 hours/month per app
+
+## Environment Variables
+- For Docker, environment variables are set in `docker-compose.yml`
+
+## CI/CD
+- GitHub Actions can automate testing and deployment
+- See `.github/workflows/` for example workflows

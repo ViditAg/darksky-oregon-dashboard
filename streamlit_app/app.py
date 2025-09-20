@@ -10,6 +10,8 @@ Streamlit app for visualizing Oregon Dark Sky SQM data.
 import sys
 from pathlib import Path
 import streamlit as st
+
+
 from streamlit_folium import st_folium
 from streamlit_plotly_events import plotly_events
 
@@ -22,7 +24,7 @@ if str(project_root) not in sys.path:
 
 from shared.utils.configs import get_meas_type_config, meas_type_dict
 from shared.utils.data_processing import OregonSQMProcessor
-from shared.utils.visualizations import create_oregon_map, create_ranking_chart, create_interactive_2d_plot
+from shared.utils.visualizations import create_oregon_map_folium, create_ranking_chart, create_interactive_2d_plot
 
 @st.cache_data(ttl=3600)
 def load_data(meas_type_configs):
@@ -92,16 +94,14 @@ def main():
             # Re-run the app to refresh all components
             st.rerun()
 
-    #print("Session state at start:", st.session_state)
     # Initialize map zoom and center in session state if not already set
     if "map_zoom" not in st.session_state:
         st.session_state["map_zoom"] = 6  # default zoom
     if "map_center" not in st.session_state:
         st.session_state["map_center"] = [44.0, -121.0]  # default center
-
-    # Capture clicked site from map, bar chart or scatter plot (None or list)
-    clicked_sites = None
-    if "clicked_sites" not in st.session_state:
+ 
+    # Initialize clicked site from map as None
+    if "clicked_sites" not in st.session_state.keys():
         st.session_state["clicked_sites"] = None
 
     # parameters bases on measurement selection
@@ -133,8 +133,8 @@ def main():
         else:
             center_ = st.session_state["map_center"]
 
-        # Create Oregon map
-        cmap = create_oregon_map(
+        # Create Oregon map using Folium
+        cmap = create_oregon_map_folium(
             sites_df=final_data_df,
             main_col=meas_type_configs['bar_chart_y_col'],
             zoom=st.session_state["map_zoom"],
@@ -175,7 +175,7 @@ def main():
             site_row = final_data_df[final_data_df["site_name"].isin(st.session_state["clicked_sites"])]
             for i, row in site_row.iterrows():
                 markdown_text = "<p style='margin:0; padding:0;'><strong>{0}</strong>".format(row["site_name"])
-                if meas_type in ["", "clear_nights_brightness"]:
+                if meas_type == "clear_nights_brightness":
                     if row['DarkSkyCertified'] == 'YES':
                         markdown_text += " - <strong style='color:green;'>Dark Sky Certified</strong>"
                     if (row['DarkSkyQualified'] == 'YES') and (row['DarkSkyCertified'] == 'NO'):

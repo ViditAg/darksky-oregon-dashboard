@@ -17,6 +17,7 @@ Support functions to get HTML snippets for Dash embedding.
 import pandas as pd
 import folium
 import plotly.graph_objects as go
+from webcolors import names
 
 #### Ranking Chart Visualization ####
 
@@ -70,6 +71,7 @@ def create_ranking_chart(
 	)
 	# Update layout for better appearance
 	fig.update_layout(
+		autosize=True,
 		plot_bgcolor="aliceblue",
 		xaxis_side="bottom",
 		height=max(400, len(chart_data) * 13),
@@ -161,8 +163,9 @@ def create_interactive_2d_plot(
     	plot_bgcolor="aliceblue",
   		showlegend=False,
 		margin=dict(l=0, r=0, t=40, b=0),
+		autosize=True,
 		height=300,
-		width=450,
+		#width=450,
 		xaxis=dict(
 			title=x_label,
 			title_font=dict(size=18),
@@ -197,43 +200,10 @@ def create_interactive_2d_plot(
 		)
 	return fig
 
-#### Functions to get HTML snippets for Dash embedding ####
-
-def figure_to_dash_component(
-	fig: go.Figure,
-	graph_id: str = "interactive-2d-plot",
-	**graph_kwargs
-):
-	"""
-	Return a Dash dcc.Graph for the given figure.
-
-	Parameters
-	----------
-	fig : go.Figure
-		Plotly figure.
-	graph_id : str, optional
-		Component id. Default 'interactive-2d-plot'.
-	graph_kwargs : dict
-		Additional kwargs passed to dcc.Graph.
-
-	Returns
-	-------
-	dcc.Graph
-		Dash graph component.
-
-	Raises
-	------
-	ImportError
-		If Dash is not installed.
-	"""
-	if dcc is None:
-		raise ImportError("Dash is not installed. Install with 'pip install dash'.")
-	return dcc.Graph(id=graph_id, figure=fig, **graph_kwargs)
-
 
 ######## Oregon Map Visualization ########
 
-def create_oregon_map(
+def create_oregon_map_folium(
 	sites_df: pd.DataFrame,
 	main_col: str,
 	zoom: int = 6,
@@ -291,30 +261,82 @@ def create_oregon_map(
 
 	return m
 
-#### Functions to get HTML snippets for Dash embedding ####
-	
-def get_folium_html(
-	map_obj: folium.Map,
-	width: str = "100%",
-	height: str = "500px"
-) -> str:
-	"""
-	Return HTML representation of a Folium map for Flask or Dash.
 
+
+
+
+def create_oregon_map_plotly(
+		sites_df,
+		map_center=[44.0, -121.0],
+		zoom=6,
+		color_col='median_brightness_mag_arcsec2',
+		highlight_sites=None
+	) -> go.Figure:
+	"""
+	Create interactive Plotly map for Oregon sites. Usable in Dash.
 	Parameters
 	----------
-	map_obj : folium.Map
-		Folium map object.
-	width : str, optional
-		Width of the map in HTML/CSS units. Defaults to "100%".
-	height : str, optional
-		Height of the map in HTML/CSS units. Defaults to "500px".
-
-	Returns
-	-------
-	str
-		HTML string for embedding the map.
+	sites_df : pd.DataFrame
+		DataFrame containing site data.		
 	"""
-	html = map_obj._repr_html_()
-	html = html.replace('width:100%;', f'width:{width};').replace('height:100%;', f'height:{height};')
-	return html
+	
+	# Group by lat/lon and aggregate site names
+	def get_color_for_group(group, color_col):
+    	# Get color_rgba from the row with the highest metric
+		idx = group[color_col].idxmax()
+		return group.loc[idx, 'color_rgba']
+	
+	grouped = sites_df.groupby(
+		['latitude', 'longitude']
+		).apply(
+		lambda g: pd.Series(
+			{
+		'site_name': g['site_name'].tolist(),
+		'color_rgba': get_color_for_group(g, color_col),
+			}
+		),
+		include_groups=False # False to avoid adding group keys to the index
+	).reset_index()
+
+	grouped['site_text'] = grouped['site_name'].apply(lambda x: ", ".join(x))
+	grouped['marker_size'] = 15
+	
+	if highlight_sites is not None:
+		# update grouped['color_rgba'] and grouped['marker_size']	
+		# for each row check if any site in the list group['site_name'] is in highlight_sites
+		# if yes, set color to cyan and size to 15
+		masker = grouped['site_name'].apply(
+			lambda x: any(site in highlight_sites for site in x)
+		)
+		grouped.loc[masker, 'color_rgba'] = 'cyan'
+		grouped.loc[masker, 'marker_size'] = 20
+
+	fig = go.Figure(
+		go.Scattermapbox(
+			lat=grouped['latitude'],
+			lon=grouped['longitude'],
+			mode='markers',
+			marker=dict(
+				color=grouped['color_rgba'],
+				size=grouped['marker_size'],
+				opacity=1
+			),
+			text=grouped['site_text'],
+			customdata=grouped['site_name'],  # Pass site name for clickData
+			hoverinfo='text'
+		)
+	)
+
+	fig.update_layout(
+		autosize=True,
+		mapbox=dict(
+			style='open-street-map',
+			center=dict(lat=map_center[0], lon=map_center[1]),
+			zoom=zoom
+		),
+		margin=dict(l=0, r=0, t=0, b=0),
+		height=400,
+		#width=600,
+	)
+
+	return fig
