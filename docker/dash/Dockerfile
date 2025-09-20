@@ -10,7 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY dash_app/ ./dash_app/
 COPY shared/ ./shared/
-COPY dash_app/assets/ ./dash_app/assets/
 
 EXPOSE 8050
 
