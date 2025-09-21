@@ -115,37 +115,36 @@ app.layout = dbc.Container(
             style=custom_styles['header']
         ),
         
-
+        # Control Panel (mirroring Streamlit sidebar)
+        dbc.Col(
+            [
+                html.Div(
+                    [
+                        html.Label(
+                            "Question?",
+                            className="form-label fw-bold"
+                        ),
+                        dcc.RadioItems(
+                            id='meas-type-radio',
+                            options=[{'label': meas_type_dict[k]['Question_text'], 'value': k} for k in meas_type_dict.keys()],
+                            value='clear_nights_brightness',
+                            className="mb-3"
+                        ),
+                        html.Button(
+                            "Refresh",
+                            id="refresh-btn",
+                            n_clicks=0, # initial click count
+                            className="btn btn-primary mb-3" # Bootstrap button classes
+                        )
+                    ],
+                    style={**custom_styles['control_panel'], 'width': '100%'}
+                )
+            ]
+        ),
         # Main visualization columns
         dbc.Row(
             [
-                # Control Panel (mirroring Streamlit sidebar)
-                dbc.Col(
-                    [
-                        html.Div(
-                            [
-                                html.Label(
-                                    "Question?",
-                                    className="form-label fw-bold"
-                                ),
-                                dcc.RadioItems(
-                                    id='meas-type-radio',
-                                    options=[{'label': meas_type_dict[k]['Question_text'], 'value': k} for k in meas_type_dict.keys()],
-                                    value='clear_nights_brightness',
-                                    className="mb-3"
-                                ),
-                                html.Button(
-                                    "Refresh",
-                                    id="refresh-btn",
-                                    n_clicks=0, # initial click count
-                                    className="btn btn-primary mb-3" # Bootstrap button classes
-                                )
-                            ],
-                            style={**custom_styles['control_panel'], 'width': '100%'}
-                        )
-                    ],
-                    width=2
-                ),
+                
                 # Map column
                 dbc.Col(
                     [
