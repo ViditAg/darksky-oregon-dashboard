@@ -2,7 +2,7 @@
 
 Interactive dashboards to visualize **Night Sky Brightness** based on the [Oregon Dark Sky Oregon SQM Network data](https://www.darkskyoregon.org/blog/darksky-oregon-sqm-network-tech-report-dec-2024):
 - **Streamlit**: Simple, fast, and cloud-friendly dashboard. [Live Demo](https://darksky-oregon-dashboard.streamlit.app/)
-- **Dash**: Advanced dashboard with Plotly interactivity. [Live Demo](https://darksky-oregon-dashboard.onrender.com/)
+- **Dash**: Advanced dashboard with Plotly interactivity. [Live Demo]
 
 Click on the live demo link to go to the dashboard. Here is a [userguide](./docs/user_guide/README.md) to make the best use of these dashboards
 
