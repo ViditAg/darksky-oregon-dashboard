@@ -583,14 +583,16 @@ def _get_help_text(meas_type):
         Input('meas-type-radio', 'value'),
         State('map-zoom-store', 'data'),
         State('map-center-store', 'data'),
-        Input('clicked-sites-store', 'data')
+        Input('clicked-sites-store', 'data'),
+        Input('refresh-btn', 'n_clicks')
     ]
 )
 def update_dashboard(
     meas_type,
     map_zoom,
     map_center,
-    clicked_sites
+    clicked_sites,
+    refresh_clicks
 ):
     """
     Update map and ranking chart based on selected measurement type
@@ -615,6 +617,16 @@ def update_dashboard(
     10. Updated scatter plot title
     11. Updated help text
     """
+    
+    # Check if refresh button was clicked
+    ctx = callback_context
+    if ctx.triggered:
+        trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if trigger_id == 'refresh-btn':
+            # Use default values when refresh is clicked
+            map_zoom = 5
+            map_center = [44.0, -121.0]
+            clicked_sites = None
     
     # data-table based on selected measurement type
     meas_type_configs = get_meas_type_config(meas_type)
