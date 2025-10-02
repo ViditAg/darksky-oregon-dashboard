@@ -4,77 +4,92 @@ Defining configuration utilities for measurement types:
 - Provide mapping and descriptive metadata for use in data processing and visualization.
 - Supply utility functions to retrieve configuration details for each measurement type.
 """
+
+# Configuration dictionary for scatter plot (common across some measurement types)
+scatter_plot_configs = {
+    "scatter_plot_title": "Ranking metric vs Median Night Sky Brightness",
+    "scatter_x_col": "median_brightness_mag_arcsec2",
+    "scatter_y_col": "x_brighter_than_darkest_night_sky",
+    "scatter_x_label": "Median Night Sky Brightness <br> (mag/arcsec²)",
+    "scatter_y_label": "X-times brighter",
+}
+
 # Configuration dictionary for different measurement types
 meas_type_dict = {
     "clear_nights_brightness": {
         "data_key": "clear_measurements",
-        "Question_text": "Where in Oregon is the Night Sky most pristine and, most light polluted during Clear nights?",
-        "bar_chart_title": "Ranking sites by how brighter they are compared to the darkest night sky (Hart Mountain)",
-        "bar_chart_text" : "by how many times the night sky at that site is brighter than at Hart Mountain",
-        "bar_chart_y_col": "x_brighter_than_darkest_night_sky",
-        "bar_chart_y_label": "<--- Darker -------------------------------- Brighter --->",
-        "scatter_plot_title": "Ranking metric vs Median Night Sky Brightness",
-        "scatter_x_col": "median_brightness_mag_arcsec2",
-        "scatter_y_col": "x_brighter_than_darkest_night_sky",
-        "scatter_x_label": "Median Night Sky Brightness <br> (mag/arcsec²)",
-        "scatter_y_label": "X-times brighter",
-        "vline": 21.2
+        "Question_text": "Clear Nights – where is the Night Sky most pristine?",
+        "bar_chart": {
+            "bar_chart_title": "Clear Nights - Ranking sites by how much brighter they are compared to our darkest night sky measurement site",
+            "bar_chart_y_col": "x_brighter_than_darkest_night_sky",
+            "bar_chart_y_label": "<--- Darker -------------------------------- Brighter --->",
+            "bar_chart_yicks": {
+                "tickmode": "log",
+                "tickvals": [1, 2, 10, 20],  # your actual data values
+                "ticktext": ["1", "2", "10", "20"] # your actual tick labels
+            }
+        },
+        "scatter_plot": scatter_plot_configs
     },
     "cloudy_nights_brightness": {
         "data_key": "cloudy_measurements",
-        "Question_text": "Where in Oregon is the Night Sky most pristine and, most light polluted during Cloudy nights?",
-        "bar_chart_title": "Ranking sites by how brighter they are compared to the darkest night sky (Crater Lake)",
-        "bar_chart_text" : "by how many times the night sky at that site is brighter than at Crater Lake",
-        "bar_chart_y_col": "x_brighter_than_darkest_night_sky",
-        "bar_chart_y_label": "<--- Darker -------------------------------- Brighter --->",
-        "scatter_plot_title": "Ranking metric vs Median Night Sky Brightness",
-        "scatter_x_col": "median_brightness_mag_arcsec2",
-        "scatter_y_col": "x_brighter_than_darkest_night_sky",
-        "scatter_x_label": "Median Night Sky Brightness <br> (mag/arcsec²)",
-        "scatter_y_label": "X-times brighter",
-        "vline": None
+        "Question_text": "Cloudy Nights – where is the Night Sky most pristine?",
+        "bar_chart": {
+            "bar_chart_title": "Cloudy Nights - Ranking sites by how much brighter they are compared to our darkest night sky measurement site",
+            "bar_chart_y_col": "x_brighter_than_darkest_night_sky",
+            "bar_chart_y_label": "<--- Darker -------------------------------- Brighter --->",
+            "bar_chart_yicks": {
+                "tickmode": "log",
+                "tickvals": [1, 10, 100, 1000],  # your actual data values
+                "ticktext": ["1", "10", "100", "1000"] # your actual tick labels
+            }
         },
+        "scatter_plot": scatter_plot_configs
+    },
     "long_term_trends": {
         "data_key": "trends",
-        "Question_text": "Where are the starry night skies disappearing the fastest in Oregon?",
-        "bar_chart_title": "Ranking sites by the rate of change in night sky brightness compared to Prineville Reservoir State Park - a certified Dark Sky Park",
-        "bar_chart_text" : "relative rate of change in night sky brightness at that site",
-        "bar_chart_y_col": "Rate_of_Change_vs_Prineville_Reservoir_State_Park",
-        "bar_chart_y_label": "<--- Slower ------------------- Faster --->",
-        "scatter_plot_title": "Night Sky Brightness: Rate of change vs % Change per year",
-        "scatter_x_col": "Percent_Change_per_year",
-        "scatter_y_col": "Rate_of_Change_vs_Prineville_Reservoir_State_Park",
-        "scatter_x_label": "Percentage change <br> (per year)",
-        "scatter_y_label": "Rate of change vs. a Dark Sky Park",
-        "vline": None
+        "Question_text": "Starry night skies – where are they disappearing or recovering?",
+        "bar_chart": {
+            "bar_chart_title": "Ranking sites by the rate of change in night sky brightness compared to a certified Dark Sky Park",
+            "bar_chart_y_col": "Rate_of_Change_vs_Prineville_Reservoir_State_Park",
+            "bar_chart_y_label": "<--- Slower ------------------- Faster --->",
+            "bar_chart_yicks": {
+                "tickmode": "linear",
+                 "tickvals": [0, 50, 100, 150],  # your actual data values
+                 "ticktext": ["0", "50", "100", "150"] # your actual tick labels
+            }
+        },
+        "scatter_plot": None  
     },
     "milky_way_visibility": {
         "data_key": "milky_way",
-        "Question_text": "Where does the Milky Way stand out best in Oregon?",
-        "bar_chart_title": "Ranking sites by how much Milky Way is brighter the than surrounding night sky",
-        "bar_chart_text" : " that site's Ratio Index, which is a unitless ratio of linear flux data from Milky Way compared to the surrounding sky",
-        "bar_chart_y_col": "ratio_index",
-        "bar_chart_y_label": "<--- Not visible --------------------------- Clearly visible --->",
-        "scatter_plot_title": "Ratio Index vs. Difference Index (both give similar information about Milky Way visibility)",
-        "scatter_x_col": "difference_index_mag_arcsec2",
-        "scatter_y_col": "ratio_index",
-        "scatter_x_label": "Difference Index <br> (mag/arcsec²)",
-        "scatter_y_label": "Ratio Index",
-        "vline": None
+        "Question_text": "Milky Way – where does it stand out best?",
+        "bar_chart": {
+            "bar_chart_title": "Milky Way – Ranking sites by how well it stands out in the clear night sky.",
+            "bar_chart_y_col": "ratio_index",
+            "bar_chart_y_label": "<--- Not visible --------------------------- Clearly visible --->",
+            "bar_chart_yicks": {
+                "tickmode": "log",
+                "tickvals": [1, 1.2, 1.4, 1.6],  # your actual data values
+                "ticktext": ["1", "1.2", "1.4", "1.6"] # your actual tick labels
+            }
+        },
+        "scatter_plot": None
     },
     "% clear nights": {
         "data_key": "cloud_coverage",
-        "Question_text": "Where in Oregon are the clearest – least cloudy – night skies?",
-        "bar_chart_title": "Ranking sites by percentage of clear nights",
-        "bar_chart_text" : "the percentage of nights that are clear (not cloudy) at that site averaged over all months in the year",
-        "bar_chart_y_col": "percent_clear_night_samples_all_months",
-        "bar_chart_y_label": "<--- Cloudiest -------------------------------- Clearest --->",
-        "scatter_plot_title": "",
-        "scatter_x_col": "",
-        "scatter_y_col": "",
-        "scatter_x_label": "",
-        "scatter_y_label": "",
-        "vline": None
+        "Question_text": "Clear Nights – where are they most common and least cloudy?",
+        "bar_chart": {
+            "bar_chart_title": "Clear Nights – Ranking sites by the percentage of clear, not cloudy nights.",
+            "bar_chart_y_col": "percent_clear_night_samples_all_months",
+            "bar_chart_y_label": "<--- Cloudiest -------------------------------- Clearest --->",
+            "bar_chart_yicks": {
+                "tickmode": "linear",
+                "tickvals": [0, 20, 40, 60, 80, 100],  # your actual data values
+                "ticktext": ["0%", "20%", "40%", "60%", "80%", "100%"] # your actual tick labels
+            }
+        },
+        "scatter_plot": None
     },
 }
 
@@ -86,7 +101,7 @@ def get_meas_type_config(meas_type: str) -> dict:
     Parameters:
     - meas_type (str): The measurement type key.
     Returns:
-        dict of str : 
+        dict of str : dict: Configuration settings for the specified measurement type.
     """
     # Validate measurement type
     if meas_type not in meas_type_dict:

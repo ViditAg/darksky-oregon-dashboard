@@ -2,7 +2,12 @@
 Streamlit app for visualizing Oregon Dark Sky SQM data. 
 - This app provides interactive maps and charts to explore Night Sky Brightness.
 - It leverages the custom class object OregonSQMProcessor for data handling.
-- Plotly/Folium for creating visualizations. 
+- Plotly        # Display Plotly map using regular st.plotly_chart
+        st.plotly_chart(cmap, use_container_width=True, key="oregon_map")
+        
+        # Temporary: Disable click events to test if markers show up
+        # TODO: Re-implement click handling once markers are visible
+        selected_points = []for creating visualizations. 
 - Finally, Streamlit is used to build the web interface whenever it is run.
 """
 
@@ -10,10 +15,7 @@ Streamlit app for visualizing Oregon Dark Sky SQM data.
 import sys
 from pathlib import Path
 import streamlit as st
-
-
 from streamlit_folium import st_folium
-from streamlit_plotly_events import plotly_events
 
 
 # local import
@@ -24,7 +26,11 @@ if str(project_root) not in sys.path:
 
 from shared.utils.configs import get_meas_type_config, meas_type_dict
 from shared.utils.data_processing import OregonSQMProcessor
-from shared.utils.visualizations import create_oregon_map_folium, create_ranking_chart, create_interactive_2d_plot
+from shared.utils.visualizations import (
+    create_oregon_map_folium,
+    create_ranking_chart,
+    create_interactive_2d_plot
+)
 
 @st.cache_data(ttl=3600)
 def load_data(meas_type_configs):
@@ -34,7 +40,7 @@ def load_data(meas_type_configs):
     # Load raw data
     final_data_df = processor.load_processed_data(
         data_key=meas_type_configs['data_key'],
-        bar_chart_col=meas_type_configs['bar_chart_y_col']
+        bar_chart_col=meas_type_configs['bar_chart']['bar_chart_y_col']
     )
     return final_data_df
 
@@ -45,7 +51,7 @@ def main():
     # Set Streamlit page layout to wide for best use of screen space
     st.set_page_config(
         layout="wide",
-        page_title="Oregon Dark Sky Dashboard",
+        page_title="Oregon DarkSky Dashboard",
     )
     # Custom CSS for top margin adjustment
     st.markdown(
@@ -63,23 +69,31 @@ def main():
     )
     
     # Set dashboard title and description
-    st.title("[Dark Sky Oregon](https://www.darkskyoregon.org/) - Night Sky Brightness at the Zenith")
+    st.title("DarkSky Oregon - Night Sky Brightness")
     # Description
     st.markdown(
         """
-        [Oregon Skyglow Measurement Network](https://www.darkskyoregon.org/oregon-skyglow-measurement-network) : DarkSky Oregon has 
-        established a network of continuously recording Sky Quality Meters (SQMs) in Oregon to measure the brightness of our night skies,
-         due to both man-made artificial light and natural light. Here we show results from their latest report (Edition #9, 2024)
-    """
-        )
-    # Sidebar controls for user interaction
-    st.sidebar.info(
-        """ Select a question below and select a site on the map to explore how brightness measurements look across different locations."""
+        [DarkSky Oregon](https://www.darkskyoregon.org/) has 
+        established a network of continuously recording Sky Quality Meters (SQMs) 
+        in Oregon to measure the brightness of our night skies at the zenith.
+        This dashboard shows results from their 
+        [latest report (Edition #9, 2024)](https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf)
+        """
+        , unsafe_allow_html=True
     )
-    
+    st.markdown("<h6>Help guide</h6> ", unsafe_allow_html=True)
+    st.markdown("""
+        <ul>
+        <li>Click on a 'marker' to select a SQM site. The site will be highlighted on the graphics below and 
+            it's corresponding measurements will be shown. Also, note how the highlighted site ranks compared to other sites.</li>
+        <li>Use the buttons on the top-right corner of each the graphics to zoom, pan, reset or save chart as an image.</li>
+        <li>The dashboard will remember your site selection and map view across different questions.</li>
+        </ul>
+    """, unsafe_allow_html=True
+    )
     # Measurement type selection (for future extensibility)
     meas_type = st.sidebar.radio(
-        "**Question?**",
+        "**Select a question?**",
         list(meas_type_dict.keys()),
         format_func=lambda x: meas_type_dict[x]['Question_text'],
         help="Toggle between questions"
@@ -88,11 +102,12 @@ def main():
     # Add a refresh button in the sidebar
     with st.sidebar:
         # If the refresh button is clicked
-        if st.button("Refresh Dashboard"):
+        if st.button("Refresh"):
             # Clear all session state to reset the app
             st.session_state.clear()
             # Re-run the app to refresh all components
             st.rerun()
+
 
     # Initialize map zoom and center in session state if not already set
     if "map_zoom" not in st.session_state:
@@ -107,36 +122,82 @@ def main():
     # parameters bases on measurement selection
     meas_type_configs = get_meas_type_config(meas_type)
     
+    metric_text_dict = {
+    "clear_nights_brightness": """<ul>
+        <li>The darkest Night Sky Location for clear nights based on current data is
+          Hart Mountain.</li>
+        <li>Bortle scale is a visual measure of night sky brightness,
+            ranging from 1 for pristine night skies to 9 at light polluted
+            urban night skies.</li>
+        <li>Median Night Sky Brightness shown in a log scale of Magnitudes/Arcsecond
+            squared is a common measure used in astronomy.</li>
+        <li>Flux Ratio shows a linear scale of night sky brightness.</li>
+        </ul>""",
+    
+    "cloudy_nights_brightness": """<ul>
+        <li>The darkest Night Sky Location for cloudy nights based on current data is Crater Lake National Park.</li>
+        <li>Cloudy nights magnify the night sky brightness contrast 
+            between pristine and light polluted sites. Cloudy nights at 
+            pristine night sky locations are exceedingly dark and are a natural 
+            part of the wild ecosystem there.</li>
+        <li>Median Night Sky Brightness is in a log scale of Magnitudes/Arcsecond
+            squared, a common measure used in astronomy.</li>
+            <li>Flux Ratio shows a linear scale of night sky brightness.</li>
+        </ul>""",
+
+    "long_term_trends": """<ul>
+        <li>Only the sites with at least 2 years of data are included to calculate the long-term trends.</li>
+        <li>Rate of Change in Night Sky Brightness is compared to Prineville Reservoir State Park which is a certified Dark Sky Park.</li>
+        <li>Trendline Slope is calculated from regression fit of change over time scaled by a factor of 10000.</li>
+        </ul>""",
+
+    "milky_way_visibility": """<ul>
+        <li>Ratio Index: Ratio of Night Sky Brightness between Milky Way and nearby sky.</li>
+        <li>Difference Index: Difference in Night Sky Brightness between Milky Way and nearby sky.</li>
+        </ul>""",
+    
+    "% clear nights": """Percentage of Clear nights mean the nights without any clouds
+      in the night sky. Measurement at each site is averaged over all months of the year."""
+    }
+    
+    st.markdown("<h6>Measurements explained:</h6> ", unsafe_allow_html=True)
+    st.markdown(metric_text_dict[meas_type], unsafe_allow_html=True)
+
     # load data
     final_data_df = load_data(meas_type_configs)
-
+    
     # Layout: Two columns - Map + Scatter plot on left, Ranking chart on right
     col_left, col_middle, col_right = st.columns([0.4, 0.35, 0.25], gap="small")
 
     # Display map and scatter plot in the left column
     with col_left:
         # Sub-Header for the map
-        st.markdown(
-            "<h3 style='font-size: 20px;'>SQM measurement site map</h3>"
-            , unsafe_allow_html=True
-        )
-        st.markdown(
-            """Click on a SQM site on the map to see its night sky brightness measurement 
-            and how it ranks compared to other sites. While selecting the next site you may need 
-            to click the site again for the app to re-load. You can also zoom/pan the map 
-            and the app will remember your view across different questions."""
-            )
+        for str_ in [
+            "<h3 style='font-size: 20px;'>SQM measurement site map</h3>",
+            "Note: all locations shown in the map below are approximated for privacy."
+        ]: st.markdown(str_, unsafe_allow_html=True)
 
         # If map_center is a dict, convert to list
         if isinstance(st.session_state["map_center"], dict):
-            center_ = [st.session_state["map_center"]["lat"], st.session_state["map_center"]["lng"]]
+            center_ = [
+                st.session_state["map_center"]["lat"],
+                st.session_state["map_center"]["lng"]
+            ]
         else:
             center_ = st.session_state["map_center"]
+
+        ## Determine color column for map based on measurement type
+        if meas_type in ["clear_nights_brightness", "cloudy_nights_brightness"]:
+            color_col = meas_type_configs['scatter_plot']['scatter_x_col']
+        else:
+            color_col = meas_type_configs['bar_chart']['bar_chart_y_col']
+
+
 
         # Create Oregon map using Folium
         cmap = create_oregon_map_folium(
             sites_df=final_data_df,
-            main_col=meas_type_configs['bar_chart_y_col'],
+            main_col=meas_type_configs['bar_chart']['bar_chart_y_col'],
             zoom=st.session_state["map_zoom"],
             map_center=center_,
             highlight_sites=st.session_state["clicked_sites"]
@@ -174,117 +235,94 @@ def main():
         if st.session_state.get("clicked_sites") is not None:      
             site_row = final_data_df[final_data_df["site_name"].isin(st.session_state["clicked_sites"])]
             for i, row in site_row.iterrows():
-                markdown_text = "<p style='margin:0; padding:0;'><strong>{0}</strong>".format(row["site_name"])
+                markdown_text = f"<p style='margin:0; padding:0;'><strong>{row['site_name']}</strong>"
                 if meas_type == "clear_nights_brightness":
                     if row['DarkSkyCertified'] == 'YES':
                         markdown_text += " - <strong style='color:green;'>Dark Sky Certified</strong>"
                     if (row['DarkSkyQualified'] == 'YES') and (row['DarkSkyCertified'] == 'NO'):
                         markdown_text += " - <strong style='color:orange;'>Dark Sky Qualified</strong>"
                         
-                    add_text = """
-                        <br>{x_bright:.2f}-times brighter than the darkest Night Sky (Hart Mountain)
-                        <br>Bortle Scale (1: Excellent dark sky - 9:  Inner-city sky): {bortle}
-                        <br>Median Night Sky Brightness (log scale): {mag_arcsec2:.2f} mag/arcsec²
-                        <br>Flux Ratio (Night Sky Brightness converted to a linear scale): = {flux_ratio:.2f}
-                          """.format(
-                              x_bright=row['x_brighter_than_darkest_night_sky'],
-                              mag_arcsec2=row['median_brightness_mag_arcsec2'],
-                              bortle=row['bortle_sky_level'],
-                              flux_ratio=row['median_linear_scale_flux_ratio']
-                              )
+                    add_text = f"""
+                        <br>{row['x_brighter_than_darkest_night_sky']:.2f}-times brighter than the darkest Night Sky
+                        <br>Bortle level: {row['bortle_sky_level']}
+                        <br>Median Night Sky Brightness: {row['median_brightness_mag_arcsec2']:.2f} mag/arcsec²
+                        <br>Flux Ratio: {row['median_linear_scale_flux_ratio']:.2f}
+                        """
                 elif meas_type == "cloudy_nights_brightness":
-                    add_text = """
-                        <br>{x_bright:.2f}-times brighter than the darkest Night Sky (Crater Lake)
-                        <br>Median Night Sky Brightness (log scale): {mag_arcsec2:.2f} mag/arcsec²
-                        <br>Flux Ratio (Night Sky Brightness converted to a linear scale): = {flux_ratio:.2f}
-                          """.format(
-                              x_bright=row['x_brighter_than_darkest_night_sky'],
-                              mag_arcsec2=row['median_brightness_mag_arcsec2'],
-                              flux_ratio=row['median_linear_scale_flux_ratio']
-                              )
+                    add_text = f"""
+                        <br>{row['x_brighter_than_darkest_night_sky']:.2f}-times brighter than the darkest Night Sky
+                        <br>Median Night Sky Brightness: {row['median_brightness_mag_arcsec2']:.2f} mag/arcsec²
+                        <br>Flux Ratio: {row['median_linear_scale_flux_ratio']:.2f}
+                        """
                 elif meas_type == "long_term_trends":
-                    add_text = """
-                        <br>Rate of Change in Night Sky Brightness vs Prineville Reservoir State Park - a certified Dark Sky Park: {rate_of_change:.4f}
-                        <br>Trendline Slope (regression fit of change over time scaled by a factor of 10000): {regression_slope_x10000:.2f}
-                        <br>Percentage Change in Night Sky Brightness per year: {percent_change:.2f}%
-                        <br>Number of Years of Data: {num_years}
-                        """.format(
-                            rate_of_change=row['Rate_of_Change_vs_Prineville_Reservoir_State_Park'],
-                            percent_change=row['Percent_Change_per_year'],
-                            regression_slope_x10000=row['Regression_Line_Slope_x_10000'],
-                            num_years=row['Number_of_Years_of_Data'],
-                        )
+                    add_text = f"""
+                        <br>Rate of Change in Night Sky Brightness compared to a certified Dark Sky Park: {row['Rate_of_Change_vs_Prineville_Reservoir_State_Park']:.1f}
+                        <br>Trendline Slope: {row['Regression_Line_Slope_x_10000']:.2f}
+                        <br>Percentage Change in Night Sky Brightness per year: {row['Percent_Change_per_year']:.1f}%
+                        <br>Number of Years of Data: {row['Number_of_Years_of_Data']}
+                        """
                 elif meas_type == "milky_way_visibility":
-                    add_text = """
-                        <br>Ratio Index (ratio of brightness of Milky Way to the surrounding sky): {ratio_index:.2f}
-                        <br>Difference Index (difference in brightness between Milky Way and surrounding sky): {difference_index:.2f}
-                        """.format(
-                            ratio_index=row['ratio_index'],
-                            difference_index=row['difference_index_mag_arcsec2']
-                        )
+                    add_text = f"""
+                        <br>Ratio Index: {row['ratio_index']:.2f}
+                        <br>Difference Index: {row['difference_index_mag_arcsec2']:.2f}
+                        """
                 elif meas_type == "% clear nights":
-                    add_text = """
-                        <br>Percentage of Clear (no clouds) nights averaged over all months in the year: {clear_nights:.2f}%
-                        """.format(
-                            clear_nights=row['percent_clear_night_samples_all_months']
-                        )
+                    add_text = f"""
+                        <br>Percentage of Clear (no clouds) nights: {row['percent_clear_night_samples_all_months']:.2f}%
+                        """
                 else:
                     add_text = """"""
                     
-                markdown_text += add_text + "<br>Site Elevation: {elevation:.0f} meters</p>".format(
-                    elevation=row['Elevation_in_meters']
-                )
+                markdown_text += add_text
 
                 st.markdown(markdown_text, unsafe_allow_html=True)
-
         
 
     # display ranking chart in the left column
     with col_middle:
         # adding header for the ranking chart
-        st.markdown(
-            f"<h3 style='font-size: 20px;'> {meas_type_configs['bar_chart_title']}</h3>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            "Hover over bars to see {0}. Use the buttons on the top-right of the chart to zoom, pan, reset or save chart as an image".format(
-                meas_type_configs['bar_chart_text']
-            )
-        )
-        #print("clicked_sites before ranking chart:", st.session_state["clicked_sites"])
+        for str_ in [
+            f"<h3 style='font-size: 20px;'> {meas_type_configs['bar_chart']['bar_chart_title']}</h3>",
+            f"Note: the x-axis is shown in {meas_type_configs['bar_chart']['bar_chart_yicks']['tickmode']} scale"
+        ]: st.markdown(str_, unsafe_allow_html=True)
+        
         # creating ranking chart based on the selected measurement type
         fig_bar = create_ranking_chart(
             sites_df=final_data_df,
-            y_col=meas_type_configs['bar_chart_y_col'],
-            y_label=meas_type_configs['bar_chart_y_label'],
+            configs=meas_type_configs['bar_chart'],
             clicked_sites=st.session_state["clicked_sites"],
         )
 
         # plotting the ranking chart via plotly
-        st.plotly_chart(fig_bar, use_container_width=True, config = {"displayModeBar": True})
+        st.plotly_chart(
+            fig_bar,
+            use_container_width=True,
+            config = {"displayModeBar": True, "displaylogo": False }
+        )
 
     # Scatter plot directly below the map
     with col_right:
-        if meas_type != "% clear nights":
+        if meas_type in ["clear_nights_brightness", "cloudy_nights_brightness"]:
             # Add subheader for scatter plot
             st.markdown(
-                f"<h3 style='font-size: 20px;'>{meas_type_configs['scatter_plot_title']}</h3>",
+                f"<h3 style='font-size: 20px;'>{meas_type_configs['scatter_plot']['scatter_plot_title']}</h3>",
                 unsafe_allow_html=True
             )
-            st.markdown(
-                "Hover over data-points to see the values. Use the buttons just like the ranking chart."
-            )
+            
+            vline_ = 21.2 if meas_type == "clear_nights_brightness" else None
+
             # creating interactive 2d scatter plot based on the selected measurement type
             fig_scatter = create_interactive_2d_plot(
                 df=final_data_df,
-                x_col=meas_type_configs['scatter_x_col'],
-                y_col=meas_type_configs['scatter_y_col'],
-                x_label=meas_type_configs['scatter_x_label'],
-                y_label=meas_type_configs['scatter_y_label'],
-                vline=meas_type_configs['vline'],
+                configs=meas_type_configs['scatter_plot'],
+                vline=vline_,
                 clicked_sites=st.session_state["clicked_sites"]
             )
-            st.plotly_chart(fig_scatter, use_container_width=False, config = {"displayModeBar": True})
+            st.plotly_chart(
+                fig_scatter,
+                use_container_width=False,
+                config = {"displayModeBar": True, "displaylogo": False }
+            )
     
 
     # Footer with project info

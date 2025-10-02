@@ -11,9 +11,9 @@ geocoder
 
 # Visualization
 plotly
+streamlit-plotly-events
 folium
 streamlit-folium
-streamlit-plotly-events
 
 # Utilities
 requests
