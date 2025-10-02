@@ -1,22 +1,24 @@
 # dash_app/app.py
 """
-Dash implementation of Oregon Dark Sky Dashboard
+ Dash implementation of Oregon Dark Sky Dashboard
+- It leverages the custom class object OregonSQMProcessor for data handling.
+- This app provides interactive maps and charts to explore Night Sky Brightness.
+- Finally, Dash is used to build the web interface whenever it is run.
 """
+# import standard libraries
 import sys
-import time
 from pathlib import Path
 import dash
 from dash import State, dcc, html, Input, Output, callback_context
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
-
 # local import
-# Add project root to path so 'shared' package is importable
+## Add project root to path so 'shared' package is importable
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
-
+## importing necessary local functions, classes and variables
 from shared.utils.configs import get_meas_type_config, meas_type_dict
 from shared.utils.data_processing import OregonSQMProcessor
 from shared.utils.visualizations import (
@@ -62,11 +64,12 @@ custom_styles = {
     }
 }
 
-# Header component definition
+# Defining Header component of the app layout
 header_component = html.Div(
     [
         html.Div(
             [
+                # adding a logo
                 html.Img(
                     src="/assets/DarkSky_logo.png",
                     style={
@@ -74,6 +77,7 @@ header_component = html.Div(
                         "verticalAlign": "middle"
                     }
                 ),
+                # adding Title
                 html.Span(
                     "DarkSky Oregon - Night Sky Brightness",
                     style={
@@ -93,6 +97,7 @@ header_component = html.Div(
                 "padding": "20px 0"
                 }
         ),
+        # Description paragraph below the title
         html.P(
                 [
                     html.A(
@@ -115,21 +120,24 @@ header_component = html.Div(
     style=custom_styles['header']
 )
 
-# Question component definition
+# defining questions component in the layout
 question_component = dbc.Col(
     [
         html.Div(
             [
+                # control panel title
                 html.Label(
                     "Select a question?",
                     className="form-label fw-bold"
                 ),
+                # Radio items for selecting measurement type
                 dcc.RadioItems(
                     id='meas-type-radio',
                     options=[{'label': meas_type_dict[k]['Question_text'], 'value': k} for k in meas_type_dict.keys()],
                     value='clear_nights_brightness',
                     className="mb-3"
                 ),
+                # Refresh button to reset map zoom and center and clicked sites
                 html.Button(
                     "Refresh",
                     id="refresh-btn",
@@ -144,16 +152,20 @@ question_component = dbc.Col(
     md=6  #  here we set md to 6 so it takes 6/12 width on medium and larger devices
 )
 
-
+# defining help text component in the layout
 help_text_component = dbc.Col(
     [
-        html.Div(id="help-text", className="small", style=custom_styles['help_text'])
+        html.Div(
+            id="help-text",
+            className="small",
+            style=custom_styles['help_text']
+        )
     ],
     xs=12, # here we set xs to 12 so it takes full width on extra small devices
     md=6  # here we set md to 6 so it takes 6/12 width on medium and larger devices
 )
 
-
+# defining map component in the layout
 map_component = dbc.Col(
     [
         html.Div(
@@ -180,7 +192,7 @@ map_component = dbc.Col(
     md=4 # here we set md to 4 so it takes 4/12 width on medium and larger devices
 )
 
-
+# defining bar chart component in the layout
 bar_component = dbc.Col(
     [
         html.Div(
@@ -202,7 +214,7 @@ bar_component = dbc.Col(
     md=4 # here we set md to 4 so it takes 4/12 width on medium and larger devices
 )
 
-
+# defining scatter plot component in the layout
 scatter_component = dbc.Col(
     [
         html.Div(
@@ -226,7 +238,7 @@ scatter_component = dbc.Col(
     md=4 # here we set md to 4 so it takes 4/12 width on medium and larger devices
 )
 
-
+# defining footer component in the layout
 footer_component = html.Div(
     [
         html.P(
@@ -251,7 +263,6 @@ footer_component = html.Div(
     style={'width': '100%'}
 )
 
-
 # this is the main layout of the app created using Dash Bootstrap Components
 app.layout = dbc.Container(
     [
@@ -271,10 +282,8 @@ app.layout = dbc.Container(
             id='clicked-sites-store', # component id
             data=None # property data (initially no site clicked)
         ),
-        
         # Header
         header_component,
-        
         # Control Panel and Help Text
         dbc.Row(
             [
@@ -283,8 +292,6 @@ app.layout = dbc.Container(
             ],
             className="mb-4"
         ),
-        
-        
         # Main visualization columns
         dbc.Row(
             [
@@ -294,7 +301,6 @@ app.layout = dbc.Container(
             ],
             className="mb-4"
         ),
-
         # Footer
         html.Hr(), # Divider Horizontal line
         # Footer content
@@ -303,7 +309,9 @@ app.layout = dbc.Container(
     fluid=True  # <-- this enables full-width layout
 )
 
+## ---------------- Begin Callbacks ---------------------
 
+# callback to update map zoom and center if map is interacted with or refresh button is clicked
 @app.callback(
     Output('map-zoom-store', 'data'),
     Output('map-center-store', 'data'),
@@ -317,22 +325,48 @@ app.layout = dbc.Container(
     ]
 )
 def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_center):
+    """
+    Update map zoom and center based on user interactions or refresh button click.
+    Parameters:
+    - relayoutData: Data from map interactions (zoom/pan)
+    - refresh_click: Number of times refresh button has been clicked, not used directly but triggers reset
+    - current_zoom: Current zoom level stored
+    - current_center: Current center coordinates stored
+    Returns:
+    - Updated zoom level and center coordinates
+    """
+    # initialize callback context to determine which input triggered the callback
     ctx = callback_context
+    
+    # If no trigger, return current values
     if not ctx.triggered:
         return current_zoom, current_center
+    
+    # Get the ID of the triggered input
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    # If map was interacted with, update zoom and center accordingly
     if trigger_id == 'oregon-map' and relayoutData:
-        zoom = relayoutData['mapbox.zoom'] if 'mapbox.zoom' in relayoutData and relayoutData['mapbox.zoom'] is not None else current_zoom
-        center = [relayoutData['mapbox.center']['lat'], relayoutData['mapbox.center']['lon']] if 'mapbox.center' in relayoutData and relayoutData['mapbox.center'] is not None else current_center
-        
+        if 'map.zoom' in relayoutData and relayoutData['map.zoom'] is not None:
+            zoom = relayoutData['map.zoom']
+        else:
+            zoom = current_zoom
+        if 'map.center' in relayoutData and relayoutData['map.center'] is not None:
+            center = [relayoutData['map.center']['lat'], relayoutData['map.center']['lon']]
+        else:
+            center = current_center
+        # Return updated zoom and center
         return zoom, center
     
+    # If refresh button was clicked, reset to default values
     elif trigger_id == 'refresh-btn':
         return 5, [44.0, -121.0]
     
+    # If none of the above, return current values
     return current_zoom, current_center
 
-
+# callback to update clicked sites based on 
+# map, bar chart, scatter plot clicks or refresh button
 @app.callback(
     Output('clicked-sites-store', 'data'),
     Output('oregon-map', 'clickData'),
@@ -347,32 +381,49 @@ def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_ce
     [State('clicked-sites-store', 'data')]
 )
 def update_clicked_sites(map_click, bar_click, scatter_click, refresh_click, current_clicked):
+    """
+    Update clicked sites based on interactions 
+    with map, bar chart, scatter plot, or refresh button.
+    Parameters:
+    - map_click: Data from map click interaction
+    - bar_click: Data from bar chart click interaction
+    - scatter_click: Data from scatter plot click interaction
+    - refresh_click: Number of times refresh button has been clicked, not used directly but triggers reset
+    - current_clicked: Currently stored clicked sites
+    Returns:
+    - Updated list of clicked sites or None if reset
+    - Reset clickData for all graphs to None to clear selections
+    """
+    # initialize callback context to determine which input triggered the callback
     ctx = callback_context
+    # If no trigger, return current values
     if not ctx.triggered:
         return current_clicked,  None, None, None
     
-
+    # Get the ID of the triggered input
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
+    # If map was clicked, update clicked sites based on map click data
     if trigger_id == 'oregon-map' and map_click:
         return map_click['points'][0]['customdata'], None, None, None
-    
+    # If bar chart was clicked, update clicked sites based on bar click data
     elif trigger_id == 'bar-chart' and bar_click:
         return [bar_click['points'][0]['y']], None, None, None
+    # If scatter plot was clicked, update clicked sites based on scatter click data
     elif trigger_id == 'scatter-plot' and scatter_click:
         return [scatter_click['points'][0]['hovertext']], None, None, None
+    # If refresh button was clicked, reset to default values
     elif trigger_id == 'refresh-btn':
         return None, None, None, None
-    
+
+    # If none of the above, return current values
     return current_clicked, None, None, None
 
 
-def get_site_info_text(
+def _get_site_info_text(
     df, meas_type, clicked_sites
 ):
-    """
-    Generate markdown text for the clicked site(s) based on measurement type.
-    """
+    """Generate markdown text for the clicked site(s) based on measurement type."""
     site_row = df[df["site_name"].isin(clicked_sites)]
     markdown_text = []
     for i, row in site_row.iterrows():
@@ -452,10 +503,8 @@ def get_site_info_text(
     return markdown_text    
     
 
-def get_help_text(meas_type):
-    """
-    Generate help text based on measurement type.
-    """
+def _get_help_text(meas_type):
+    """Generate help text based on measurement type."""
     help_text_str_list = [
         """Click on a 'marker' or a 'bar' to select a SQM site. The site will be highlighted on the graphics below and 
             it's corresponding measurements will be shown. Also, note how the highlighted site ranks compared to other sites.""",
@@ -473,9 +522,7 @@ def get_help_text(meas_type):
         """Median Night Sky Brightness shown in a log scale of Magnitudes/Arcsecond
             squared is a common measure used in astronomy""",
         "Flux Ratio shows a linear scale of night sky brightness.",
-        
         ]
-    
     elif meas_type == "cloudy_nights_brightness":
        str_list = [
            "The darkest Night Sky Location for cloudy nights based on current data is Crater Lake National Park",
@@ -487,28 +534,27 @@ def get_help_text(meas_type):
                 squared, a common measure used in astronomy""",
             "Flux Ratio shows a linear scale of night sky brightness.",
         ]
-    
     elif meas_type == "long_term_trends":
         str_list = [
             """Only the sites with at least 2 years of data are included to calculate the long-term trends.""",
             """Rate of Change in Night Sky Brightness is compared to Prineville Reservoir State Park which is a certified Dark Sky Park.""",
             """Trendline Slope is calculated from regression fit of change over time scaled by a factor of 10000""",
         ]
-        
     elif meas_type == "milky_way_visibility":
         str_list = [
             """Ratio Index: Ratio of Night Sky Brightness between Milky Way and nearby sky""",
             """Difference Index: Difference in Night Sky Brightness between Milky Way and nearby sky"""
         ]
-        
     elif meas_type == "% clear nights":
         str_list = [
             """Percentage of Clear nights mean the nights without any clouds in the night sky""",
             """Measurement at each site is averaged over all months of the year"""
         ]
     
+    # Create list items for each metric explanation
     metric_component_list = [html.Li(t_) for t_ in str_list]
-
+    
+    # return the complete help text component 
     return html.Div(
         [
             html.B("Help guide"),
@@ -517,7 +563,6 @@ def get_help_text(meas_type):
             html.Ul(metric_component_list)
         ]
     )
-
 
 # Callbacks for interactivity (mirroring Streamlit logic)
 @app.callback(
@@ -552,9 +597,23 @@ def update_dashboard(
 
     Parameters:
     - meas_type: The selected measurement type
+    - map_zoom: Current zoom level of the map
+    - map_center: Current center coordinates of the map
+    - clicked_sites: List of currently clicked/selected sites
 
     Returns:
-    - A tuple containing the updated map figure and ranking chart figure
+    - A tuple containing updated figures and texts for the dashboard components
+    1. Updated map figure
+    2. Updated site info text
+    3. Updated map chart title
+    4. Updated map chart explanatory text
+    5. Updated bar chart figure
+    6. Updated bar chart title
+    7. Updated bar chart explanatory text
+    8. Style for scatter plot div (to show/hide)
+    9. Updated scatter plot figure
+    10. Updated scatter plot title
+    11. Updated help text
     """
     
     # data-table based on selected measurement type
@@ -567,7 +626,7 @@ def update_dashboard(
         )
     
     # Generate help text based on measurement type
-    help_text = get_help_text(meas_type=meas_type)
+    help_text = _get_help_text(meas_type=meas_type)
     
     # Create map graphics
     ## Create map title
@@ -592,7 +651,7 @@ def update_dashboard(
     if clicked_sites is None:
         site_info_text = "" # No site selected
     else:    
-        site_info_text = get_site_info_text(
+        site_info_text = _get_site_info_text(
             df=final_data_df,
             meas_type=meas_type,
             clicked_sites=clicked_sites
@@ -620,6 +679,7 @@ def update_dashboard(
         # a style to show the scatter plot div when applicable
         fig_scatter_style = {'display': 'block'}
         
+        # Add a vertical line at 21.2 mag/arcsec² for clear nights brightness
         vline_ = 21.2 if meas_type == "clear_nights_brightness" else None
         
         # Create scatter plot using custom function based on Plotly
@@ -633,10 +693,8 @@ def update_dashboard(
     else:
         # Hide scatter plot title
         scatter_plot_title = ""
-        
         # Hide scatter plot div
         fig_scatter_style = {'display': 'none'}
-
         # Create empty scatter plot
         fig_scatter = go.Figure()
     
