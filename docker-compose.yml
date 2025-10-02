@@ -38,7 +38,7 @@ services:
       - ./shared:/app/shared  # Shared code/data
       - ./tests:/app/tests  # Test code
     environment:
-      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+      - PYTHONPATH=/app:/app/shared:/app/tests  # Python import paths
     profiles:
       - test  # Test profile
 
@@ -51,7 +51,7 @@ services:
       - ./shared:/app/shared  # Shared code/data
       - ./tests:/app/tests  # Test code
     environment:
-      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+      - PYTHONPATH=/app:/app/shared:/app/tests  # Python import paths
     profiles:
       - test  # Test profile
 
@@ -63,8 +63,9 @@ services:
     volumes:
       - ./shared:/app/shared  # Shared code/data
       - ./tests:/app/tests  # Test code
+      - ./dash_app:/app/dash_app  # Dash app code
     environment:
-      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+      - PYTHONPATH=/app:app/shared:/app/tests  # Python import paths
     profiles:
       - test  # Test profile
 
@@ -76,7 +77,8 @@ services:
     volumes:
       - ./shared:/app/shared  # Shared code/data
       - ./tests:/app/tests  # Test code
+      - ./streamlit_app:/app/streamlit_app  # Streamlit app code
     environment:
-      - PYTHONPATH=/app/shared:/app/tests  # Python import paths
+      - PYTHONPATH=/app:/app/shared:/app/tests  # Python import paths
     profiles:
       - test  # Test profile

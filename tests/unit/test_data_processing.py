@@ -26,10 +26,10 @@ class TestOregonSQMProcessor(unittest.TestCase):
                 ]
             ),
             'geocode': pd.DataFrame(
-                columns=['site_name', 'latitude', 'longitude', 'Elevation_in_meters'],
+                columns=['site_name', 'latitude', 'longitude'],
                 data=[
-                    ['Awbrey Butte', 44.08, -121.33, 1272.0],
-                    ['Pine Mountain Observatory', 43.79, -120.94, 1912.0]
+                    ['Awbrey Butte', 44.1, -121.3],
+                    ['Pine Mountain Observatory', 43.8, -120.9]
                 ]
             ),
             'clear_measurements': pd.DataFrame(
@@ -83,6 +83,20 @@ class TestOregonSQMProcessor(unittest.TestCase):
                     ['Hyatt Lake', 48.4],
                     ['Summit Prairie', 46.8]
                 ]
+            ),
+            'colormap_clear': pd.DataFrame(
+                columns=['brightness_mag_arcsec2','red','green','blue','transparency'],
+                data=[
+                    [0.010,255,255,255,255],
+                    [8.970,255,255,255,255]
+                ]
+            ),
+            'colormap_cloudy': pd.DataFrame(
+                columns=['brightness_mag_arcsec2','red','green','blue','transparency'],
+                data=[
+                    [0.010,255,255,255,255],
+                    [8.970,255,255,255,255]
+                ]
             )
         }
 
@@ -128,7 +142,7 @@ class TestOregonSQMProcessor(unittest.TestCase):
                     f"Dtype mismatch for {col} in {key}"
                 )
 
-    
+
     def test_load_processed_data(self):
         """
         Test loading and processing of data for a specific measurement type.
@@ -141,9 +155,30 @@ class TestOregonSQMProcessor(unittest.TestCase):
             'milky_way',
             'cloud_coverage'
         ]
+        
+        def assert_column_data(df, col):
+            """ Helper function to assert column data type and non-null values."""
+            self.assertIn(col, df.columns)
+            self.assertTrue(pd.api.types.is_numeric_dtype(df[col]))
+            self.assertFalse(df[col].isnull().any())
+        
         for key in valid_keys:
+            if key in ['clear_measurements', 'cloudy_measurements']:
+                value_col = "median_brightness_mag_arcsec2"
+            elif key == 'trends':
+                value_col = "Rate_of_Change_vs_Prineville_Reservoir_State_Park"
+            elif key == 'milky_way':
+                value_col = "ratio_index"
+            elif key == 'cloud_coverage':
+                value_col = "percent_clear_night_samples_all_months"
+            else:
+                value_col = None
+            
             # Load processed data for each key
-            processed_df = self.processor.load_processed_data(raw_df_key=key)
+            processed_df = self.processor.load_processed_data(
+                data_key=key,
+                bar_chart_col=value_col
+            )
             # Check that the result is not None
             self.assertIsNotNone(processed_df)
             # Check that the result is a DataFrame
@@ -151,55 +186,51 @@ class TestOregonSQMProcessor(unittest.TestCase):
             # Check that the DataFrame is not empty
             self.assertFalse(processed_df.empty, f"DataFrame for key '{key}' is empty")
             
-            # Check that expected columns are present
-            expected_columns = ['site_name', 'latitude', 'longitude', 'Elevation_in_meters']
-            for col in expected_columns:
+            # Check that expected columns are present and have no nulls and are of string type
+            for col in ['site_name', 'color_rgba']:
                 self.assertIn(col, processed_df.columns)
-            
-            # Check that site_name column has string type and no nulls
-            self.assertTrue(pd.api.types.is_string_dtype(processed_df['site_name']))
-            self.assertFalse(processed_df['site_name'].isnull().any())
-            # Check that latitude and longitude columns are numeric and have no nulls
-            for col in ['latitude', 'longitude', 'Elevation_in_meters']:
-                self.assertTrue(pd.api.types.is_numeric_dtype(processed_df[col]))
                 self.assertFalse(processed_df[col].isnull().any())
+                self.assertTrue(pd.api.types.is_string_dtype(processed_df[col]))
+            
+            # initialize list of other columns to check
+            extra_cols_to_check = ['latitude', 'longitude',]
 
+            # Determine additional columns to check based on data_key
             if key in ['clear_measurements', 'cloudy_measurements']:
-                # Check that brightness columns are numeric and have no nulls
-                brightness_cols = [
+                add_cols = [
                     'median_brightness_mag_arcsec2',
                     'median_linear_scale_flux_ratio',
                     'x_brighter_than_darkest_night_sky'
                 ]
-                for col in brightness_cols:
-                    self.assertIn(col, processed_df.columns)
-                    self.assertTrue(pd.api.types.is_numeric_dtype(processed_df[col]))
-                    self.assertFalse(processed_df[col].isnull().any())
+            
             elif key == 'trends':
-                # Check that trend-related columns are numeric and have no nulls
-                trend_cols = [
+                add_cols = [
                     'Number_of_Years_of_Data',
                     'Percent_Change_per_year',
                     'Regression_Line_Slope_x_10000',
                     'Rate_of_Change_vs_Prineville_Reservoir_State_Park'
                 ]
-                for col in trend_cols:
-                    self.assertIn(col, processed_df.columns)
-                    self.assertTrue(pd.api.types.is_numeric_dtype(processed_df[col]))
-                    self.assertFalse(processed_df[col].isnull().any())
+                
             elif key == 'milky_way':
-                # Check that milky way related columns are numeric and have no nulls
-                milky_way_cols = ['difference_index_mag_arcsec2', 'ratio_index']
-                for col in milky_way_cols:
-                    self.assertIn(col, processed_df.columns)
-                    self.assertTrue(pd.api.types.is_numeric_dtype(processed_df[col]))
-                    self.assertFalse(processed_df[col].isnull().any())
+                add_cols = ['difference_index_mag_arcsec2', 'ratio_index']
+                
             elif key == 'cloud_coverage':
-                # Check that cloud coverage column is numeric and has no nulls
-                self.assertIn('percent_clear_night_samples_all_months', processed_df.columns)
-                self.assertTrue(pd.api.types.is_numeric_dtype(processed_df['percent_clear_night_samples_all_months']))
-                self.assertFalse(processed_df['percent_clear_night_samples_all_months'].isnull().any())
-            else: pass
+                add_cols = ['percent_clear_night_samples_all_months']
+
+            else: add_cols = []
+
+            # extend the list of columns to check
+            extra_cols_to_check.extend(add_cols)
+
+            # Check that these columns are present, numeric, and have no nulls
+            for col in extra_cols_to_check: assert_column_data(processed_df, col)
+
+            if key == 'clear_measurements':
+                for col in ['DarkSkyQualified', 'DarkSkyCertified']:
+                    # Check that these columns are present and boolean
+                    self.assertIn(col, processed_df.columns)
+                    self.assertTrue(pd.api.types.is_string_dtype(processed_df[col]))
+                    self.assertFalse(processed_df[col].isnull().any())               
 
 if __name__ == "__main__":
     # Run the tests via command line

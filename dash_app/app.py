@@ -167,8 +167,10 @@ map_component = dbc.Col(
         ),
         dcc.Graph(
             id='oregon-map',
-            style={'height': '400px', 'width': '100%'}
+            style={'height': '400px', 'width': '100%'},
+            config={'displayModeBar': True, 'displaylogo': True}
         ),
+        html.Br(),html.Br(),
         html.Div(
             id='site-info-div',
             className="mt-1" # margin-top for spacing

@@ -171,7 +171,7 @@ class OregonSQMProcessor:
     def load_processed_data(
         self,
         data_key: str,
-        bar_chart_col: str = None
+        bar_chart_col: str
     ):
         """
         Load and process data for a specific measurement type.
@@ -182,8 +182,8 @@ class OregonSQMProcessor:
         ----------
         data_key : str
             Key for the measurement type (e.g., 'clear_measurements').
-        bar_chart_col : str, optional
-            Column used for bar chart ranking, by default None.
+        bar_chart_col : str
+            Column used for bar chart ranking
         Returns
         -------
         pd.DataFrame
