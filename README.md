@@ -2,7 +2,7 @@
 
 Interactive dashboards to visualize **Night Sky Brightness** based on the [Oregon Dark Sky Oregon SQM Network data](https://www.darkskyoregon.org/blog/darksky-oregon-sqm-network-tech-report-dec-2024):
 - **Streamlit**: Simple, fast, and cloud-friendly dashboard. [Live Demo](https://darksky-oregon-dashboard.streamlit.app/)
-- **Dash**: Advanced dashboard with Plotly interactivity. [Live Demo]
+- **Dash**: Advanced dashboard with Plotly interactivity. [Live Demo](https://darksky-oregon-dashboard.onrender.com/)
 
 Click on the live demo link to go to the dashboard. Here is a [userguide](./docs/user_guide/README.md) to make the best use of these dashboards
 
@@ -13,8 +13,13 @@ Click on the live demo link to go to the dashboard. Here is a [userguide](./docs
 - `shared/data/` — Raw and processed data files
 - `tests/` — Unit, integration, and performance tests
 - `docker/` — Dockerfiles for each app
-- `docs/` — API, deployment, and user guides
 
+
+## Prerequisites
+
+- **Python 3.8+** (Download from [python.org](https://www.python.org/downloads/))
+- **Git** (Download from [git-scm.com](https://git-scm.com/downloads))  
+- **For Windows users**: We recommend using Git Bash (included with Git) or Windows Subsystem for Linux (WSL) for the best experience with shell commands.
 
 ## Contribution Guidelines
 
@@ -27,14 +32,26 @@ To contribute to this project:
      git clone https://github.com/<your-username>/darksky-oregon-dashboard.git
      cd darksky-oregon-dashboard
      ```
+   - Note: These commands work the same on Windows Command Prompt, PowerShell, and Git Bash.
 
 2. **Set Up Local Development Environment**
+   
+   **For Linux/macOS:**
    - Use the provided setup script:
      ```bash
      chmod +x setup_env.sh
      ./setup_env.sh
      source venv_dashboard/bin/activate
      ```
+   
+   **For Windows:**
+   - Create and activate a virtual environment manually:
+     ```cmd
+     python -m venv venv_dashboard
+     venv_dashboard\Scripts\activate
+     pip install -r requirements.txt
+     ```
+   
    - This creates and activates a virtual environment for you.
 
 3. **Make Your Edits**
@@ -112,7 +129,8 @@ As we get more data collected, we need to update or swap CSV data files in `shar
   - Connect your GitHub repo at https://streamlit.io/cloud
   - Free for public projects, quick setup
 - **Render.com:**
-  - Connect your repo, choose Python web service or Docker
+  - Connect your GitHub repo at https://dashboard.render.com
+  - Choose Python web service or Docker
   - Deploy using the repository's Dockerfile
   - Free tier: 750 hours/month per app
 

@@ -1,68 +1,267 @@
 # dash_app/app.py
 """
-Complete Dash implementation of Oregon Dark Sky Dashboard
+ Dash implementation of Oregon Dark Sky Dashboard
+- It leverages the custom class object OregonSQMProcessor for data handling.
+- This app provides interactive maps and charts to explore Night Sky Brightness.
+- Finally, Dash is used to build the web interface whenever it is run.
 """
+# import standard libraries
 import sys
-import time
 from pathlib import Path
 import dash
 from dash import State, dcc, html, Input, Output, callback_context
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
-
 # local import
-# Add project root to path so 'shared' package is importable
+## Add project root to path so 'shared' package is importable
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
-
+## importing necessary local functions, classes and variables
 from shared.utils.configs import get_meas_type_config, meas_type_dict
 from shared.utils.data_processing import OregonSQMProcessor
-from shared.utils.visualizations import create_interactive_2d_plot, create_oregon_map_plotly, create_ranking_chart
+from shared.utils.visualizations import (
+    create_interactive_2d_plot,
+    create_oregon_map_plotly,
+    create_ranking_chart
+)
 
 # Initialize Dash app with Bootstrap theme
 app = dash.Dash(
     __name__, 
+    title="Oregon Dark Sky Dashboard - Dash",
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}]
 )
-# Set the title for the app
-app.title = "Oregon Dark Sky Dashboard - Dash"
 
 # Use data saved in shared directory
 processor = OregonSQMProcessor(data_dir=project_root / "shared/data")
-raw_dfs = processor.load_raw_data()
 
 # here we define the custom CSS styles for various DASH components
 custom_styles = {
     'header': {
-        'backgroundColor': "#263C77",
+        'backgroundColor': "white",
         'color': 'white',
-"""
-Dash implementation of the Oregon Dark Sky Dashboard
-"""
-        'padding': '20px',
-        'marginBottom': '20px',
+        'padding': '10px',
+        'marginBottom': '5px',
         'borderRadius': '8px'
     },
     'control_panel': {
-        'backgroundColor': '#f8f9fa',
+        'backgroundColor': '#f0f8ff',
         'padding': '15px',
         'borderRadius': '8px',
         'marginBottom': '20px',
-        'border': '1px solid #dee2e6'
+        'border': '1px solid #f0f8ff'
     },
-    'metric_card': {
+    'help_text': {
         'backgroundColor': 'white',
-        'padding': '15px',
+        'padding': '5px',
         'borderRadius': '8px',
-        'border': '1px solid #dee2e6',
-        'textAlign': 'center',
-        'marginBottom': '10px'
+        'border': '2px solid #f0f8ff',
+        'textAlign': 'left',
+        'marginBottom': '0px'
     }
 }
 
+# Defining Header component of the app layout
+header_component = html.Div(
+    [
+        html.Div(
+            [
+                # adding a logo
+                html.Img(
+                    src="/assets/DarkSky_logo.png",
+                    style={
+                        "height": "60px",
+                        "verticalAlign": "middle"
+                    }
+                ),
+                # adding Title
+                html.Span(
+                    "DarkSky Oregon - Night Sky Brightness",
+                    style={
+                        "fontSize": "2em",
+                        "marginLeft": "20px",
+                        "verticalAlign": "middle",
+                        'backgroundColor': "#1e1e3f", # Header background color
+                        "border":  "#1e1e3f",  # Add border
+                        "color": "white",
+                        "padding": "10px",           # Add padding inside border
+                        "borderRadius": "8px"        # Rounded corners
+                    }
+                )
+            ], style={
+                "display": "flex",
+                "alignItems": "center",
+                "padding": "20px 0"
+                }
+        ),
+        # Description paragraph below the title
+        html.P(
+                [
+                    html.A(
+                        "DarkSky Oregon",
+                        href="https://www.darkskyoregon.org/",
+                        target="_blank",
+                        style={"color": "blue", "textDecoration": "underline"}
+                    ),
+                    " has established a network of continuously recording Sky Quality Meters (SQMs) in Oregon to measure the brightness of our night skies at the zenith. This dashboard shows results from our ",
+                    html.A(
+                        "latest report (Edition #9, 2024)",
+                        href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+                        target="_blank",
+                        style={"color": "blue", "textDecoration": "underline"}
+                    )
+                ],
+                style={"color": "black"}
+        )
+    ],
+    style=custom_styles['header']
+)
+
+# defining questions component in the layout
+question_component = dbc.Col(
+    [
+        html.Div(
+            [
+                # control panel title
+                html.Label(
+                    "Select a question?",
+                    className="form-label fw-bold"
+                ),
+                # Radio items for selecting measurement type
+                dcc.RadioItems(
+                    id='meas-type-radio',
+                    options=[{'label': meas_type_dict[k]['Question_text'], 'value': k} for k in meas_type_dict.keys()],
+                    value='clear_nights_brightness',
+                    className="mb-3"
+                ),
+                # Refresh button to reset map zoom and center and clicked sites
+                html.Button(
+                    "Refresh",
+                    id="refresh-btn",
+                    n_clicks=0, # initial click count
+                    className="btn btn-primary mb-3" # Bootstrap button classes
+                )
+            ],
+            style=custom_styles['control_panel']
+        )
+    ],
+    xs=12, # here we set xs to 12 so it takes full width on extra small devices
+    md=6  #  here we set md to 6 so it takes 6/12 width on medium and larger devices
+)
+
+# defining help text component in the layout
+help_text_component = dbc.Col(
+    [
+        html.Div(
+            id="help-text",
+            className="small",
+            style=custom_styles['help_text']
+        )
+    ],
+    xs=12, # here we set xs to 12 so it takes full width on extra small devices
+    md=6  # here we set md to 6 so it takes 6/12 width on medium and larger devices
+)
+
+# defining map component in the layout
+map_component = dbc.Col(
+    [
+        html.Div(
+            id='map-chart-title',
+            style={'maxWidth': '600px', 'margin': '0 auto'},
+            className="h5 mb-1" # margin-top for spacing
+        ),
+        html.Div(
+            id='map-chart-text',
+            className="small" # margin-top for spacing
+        ),
+        dcc.Graph(
+            id='oregon-map',
+            style={'height': '400px', 'width': '100%'},
+            config={'displayModeBar': True, 'displaylogo': True}
+        ),
+        html.Br(),html.Br(),
+        html.Div(
+            id='site-info-div',
+            className="mt-1" # margin-top for spacing
+        )
+    ],
+    xs=12, # here we set xs to 12 so it takes full width on extra small devices
+    md=4 # here we set md to 4 so it takes 4/12 width on medium and larger devices
+)
+
+# defining bar chart component in the layout
+bar_component = dbc.Col(
+    [
+        html.Div(
+            id='bar-chart-title',
+            style={'maxWidth': '600px', 'margin': '0 auto'},
+            className="h5 mb-1" # margin-top for spacing
+        ),
+        html.Div(
+            id='bar-chart-text',
+            className="small" # margin-top for spacing
+        ),
+        dcc.Graph(
+            id='bar-chart',
+            style={'height': '900px', 'maxWidth': '600px', 'margin': '0 auto'},
+            config={'displayModeBar': True, 'displaylogo': True}
+            ),
+    ],
+    xs=12, # here we set xs to 12 so it takes full width on extra small devices
+    md=4 # here we set md to 4 so it takes 4/12 width on medium and larger devices
+)
+
+# defining scatter plot component in the layout
+scatter_component = dbc.Col(
+    [
+        html.Div(
+            id="scatter-plot-div",
+            children=[
+                html.Div(
+                    id="scatter-plot-title",
+                    className="h5 mb-1",
+                    style={'maxWidth': '300px', 'margin': '0 auto'}
+                ),
+                dcc.Graph(
+                    id='scatter-plot',
+                    style={'height': '300px', 'maxWidth': '350px', 'margin': '0 auto'},
+                    config={'displayModeBar': True, 'displaylogo': True}
+                )
+            ]
+        ),
+        
+    ],
+    xs=12, # here we set xs to 12 so it takes full width on extra small devices
+    md=4 # here we set md to 4 so it takes 4/12 width on medium and larger devices
+)
+
+# defining footer component in the layout
+footer_component = html.Div(
+    [
+        html.P(
+            [
+            "Framework: Dash | Data Source: ",
+            html.A(
+                "DarkSky Oregon SQM Network Technical Report Edition #9",
+                href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+                target="_blank"
+            ),
+            " Repository: ",
+            html.A(
+                "https://github.com/ViditAg/darksky-oregon-dashboard",
+                href="https://github.com/ViditAg/darksky-oregon-dashboard",
+                target="_blank",
+                className="text-decoration-none"
+            )
+            ],
+            className="text-center text-muted"
+        )
+    ],
+    style={'width': '100%'}
+)
 
 # this is the main layout of the app created using Dash Bootstrap Components
 app.layout = dbc.Container(
@@ -83,180 +282,36 @@ app.layout = dbc.Container(
             id='clicked-sites-store', # component id
             data=None # property data (initially no site clicked)
         ),
-        
         # Header
-        html.Div(
+        header_component,
+        # Control Panel and Help Text
+        dbc.Row(
             [
-                html.H1(
-                    "Dark Sky Oregon - Night Sky Brightness at the Zenith",
-                    className="text-center mb-2"
-                ),
-                html.P(
-                        [
-                            
-                            "Dark Sky Oregon ",
-                            html.A(
-                                "(see website)",
-                                href="https://www.darkskyoregon.org/",
-                                target="_blank",
-                                style={"color": "cyan", "textDecoration": "underline"}
-                            ),
-                            " has established a network of continuously recording Sky Quality Meters (SQMs) in Oregon to measure the brightness of our night skies, due to both man-made artificial light and natural light. Here we show results from their ",
-                            html.A(
-                                "latest report (Edition #9, 2024)",
-                                href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
-                                target="_blank",
-                                style={"color": "cyan", "textDecoration": "underline"}
-                            )
-                        ],
-                        style={"color": "white"}
-                )
+                question_component,
+                help_text_component
             ],
-            style=custom_styles['header']
-        ),
-        
-        # Control Panel (mirroring Streamlit sidebar)
-        dbc.Col(
-            [
-                html.Div(
-                    [
-                        html.Label(
-                            "Question?",
-                            className="form-label fw-bold"
-                        ),
-                        dcc.RadioItems(
-                            id='meas-type-radio',
-                            options=[{'label': meas_type_dict[k]['Question_text'], 'value': k} for k in meas_type_dict.keys()],
-                            value='clear_nights_brightness',
-                            className="mb-3"
-                        ),
-                        html.Button(
-                            "Refresh",
-                            id="refresh-btn",
-                            n_clicks=0, # initial click count
-                            className="btn btn-primary mb-3" # Bootstrap button classes
-                        )
-                    ],
-                    style={**custom_styles['control_panel'], 'width': '100%'}
-                )
-            ]
+            className="mb-4"
         ),
         # Main visualization columns
         dbc.Row(
             [
-                
-                # Map column
-                dbc.Col(
-                    [
-                        html.H5(
-                            "SQM measurement site map",
-                            className="mb-3"
-                        ),
-                        html.P(
-                            """
-                            Click on a SQM site on the map to see its night sky brightness measurement
-                             and how it ranks compared to other sites. While selecting the next site
-                             you may need to click the site again for the app to re-load. You can also
-                             zoom/pan the map and the app will remember your view across different 
-                             questions."""
-                             ),
-                        dcc.Graph(
-                            id='oregon-map',
-                            style={'height': '400px', 'width': '100%'}
-                        ),
-                        html.Div(
-                            id='site-info-div',
-                            className="mt-1" # margin-top for spacing
-                        )
-                    ],
-                    #width=4
-                ),
-                
-                # Bar chart column
-                dbc.Col(
-                    [
-                        html.Div(
-                            id='bar-chart-title',
-                            style={'maxWidth': '600px', 'margin': '0 auto'},
-                            className="h5 mb-3" # margin-top for spacing
-                        ),
-                        html.Div(
-                            id='bar-chart-text',
-                            style={'maxWidth': '600px', 'margin': '0 auto'},
-                            className="mt-1" # margin-top for spacing
-                        ),
-                        dcc.Graph(
-                            id='bar-chart',
-                            style={'height': '1000px', 'maxWidth': '600px', 'margin': '0 auto'},
-                            config={'displayModeBar': True}
-                            ),
-                    ],
-                    #width=3
-                ),
-                
-                # Scatter plot column
-                dbc.Col(
-                    [
-                        html.Div(
-                            id="scatter-plot-div",
-                            children=[
-                                html.Div(
-                                    id="scatter-plot-title",
-                                    className="h5 text-center mb-3",
-                                    style={'maxWidth': '300px', 'margin': '0 auto'}
-                                ),
-                                html.P(
-                                    """
-                                    Hover over data-points to see the values. 
-                                    Use the buttons just like the ranking chart.
-                                    """,
-                                    style={'maxWidth': '300px', 'margin': '0 auto'}
-                                ),
-                                dcc.Graph(
-                                    id='scatter-plot',
-                                    style={'height': '300px', 'maxWidth': '350px', 'margin': '0 auto'},
-                                    config={'displayModeBar': True}
-                                )
-                            ]
-                        )
-                    ],
-                    #width=2
-                )
+                map_component,                
+                bar_component,
+                scatter_component,
             ],
             className="mb-4"
         ),
-
         # Footer
         html.Hr(), # Divider Horizontal line
         # Footer content
-        html.Div(
-            [
-                html.P(
-                    [
-                    "Framework: Dash | Data Source: ",
-                    html.A(
-                        "DarkSky Oregon SQM Network Technical Report Edition #9",
-                        href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
-                        target="_blank"
-                    ),
-                    " Repository: ",
-                    html.A(
-                        "https://github.com/ViditAg/darksky-oregon-dashboard",
-                        href="https://github.com/ViditAg/darksky-oregon-dashboard",
-                        target="_blank",
-                        className="text-decoration-none"
-                    )
-                    ],
-                    className="text-center text-muted"
-                )
-            ],
-            style={'width': '100%'}
-        )
+        footer_component
     ],
     fluid=True  # <-- this enables full-width layout
 )
 
+## ---------------- Begin Callbacks ---------------------
 
+# callback to update map zoom and center if map is interacted with or refresh button is clicked
 @app.callback(
     Output('map-zoom-store', 'data'),
     Output('map-center-store', 'data'),
@@ -270,22 +325,48 @@ app.layout = dbc.Container(
     ]
 )
 def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_center):
+    """
+    Update map zoom and center based on user interactions or refresh button click.
+    Parameters:
+    - relayoutData: Data from map interactions (zoom/pan)
+    - refresh_click: Number of times refresh button has been clicked, not used directly but triggers reset
+    - current_zoom: Current zoom level stored
+    - current_center: Current center coordinates stored
+    Returns:
+    - Updated zoom level and center coordinates
+    """
+    # initialize callback context to determine which input triggered the callback
     ctx = callback_context
+    
+    # If no trigger, return current values
     if not ctx.triggered:
         return current_zoom, current_center
+    
+    # Get the ID of the triggered input
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    # If map was interacted with, update zoom and center accordingly
     if trigger_id == 'oregon-map' and relayoutData:
-        zoom = relayoutData['mapbox.zoom'] if 'mapbox.zoom' in relayoutData and relayoutData['mapbox.zoom'] is not None else current_zoom
-        center = [relayoutData['mapbox.center']['lat'], relayoutData['mapbox.center']['lon']] if 'mapbox.center' in relayoutData and relayoutData['mapbox.center'] is not None else current_center
-        
+        if 'map.zoom' in relayoutData and relayoutData['map.zoom'] is not None:
+            zoom = relayoutData['map.zoom']
+        else:
+            zoom = current_zoom
+        if 'map.center' in relayoutData and relayoutData['map.center'] is not None:
+            center = [relayoutData['map.center']['lat'], relayoutData['map.center']['lon']]
+        else:
+            center = current_center
+        # Return updated zoom and center
         return zoom, center
     
+    # If refresh button was clicked, reset to default values
     elif trigger_id == 'refresh-btn':
         return 5, [44.0, -121.0]
     
+    # If none of the above, return current values
     return current_zoom, current_center
 
-
+# callback to update clicked sites based on 
+# map, bar chart, scatter plot clicks or refresh button
 @app.callback(
     Output('clicked-sites-store', 'data'),
     Output('oregon-map', 'clickData'),
@@ -300,29 +381,49 @@ def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_ce
     [State('clicked-sites-store', 'data')]
 )
 def update_clicked_sites(map_click, bar_click, scatter_click, refresh_click, current_clicked):
+    """
+    Update clicked sites based on interactions 
+    with map, bar chart, scatter plot, or refresh button.
+    Parameters:
+    - map_click: Data from map click interaction
+    - bar_click: Data from bar chart click interaction
+    - scatter_click: Data from scatter plot click interaction
+    - refresh_click: Number of times refresh button has been clicked, not used directly but triggers reset
+    - current_clicked: Currently stored clicked sites
+    Returns:
+    - Updated list of clicked sites or None if reset
+    - Reset clickData for all graphs to None to clear selections
+    """
+    # initialize callback context to determine which input triggered the callback
     ctx = callback_context
+    # If no trigger, return current values
     if not ctx.triggered:
         return current_clicked,  None, None, None
     
-
+    # Get the ID of the triggered input
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
+    # If map was clicked, update clicked sites based on map click data
     if trigger_id == 'oregon-map' and map_click:
         return map_click['points'][0]['customdata'], None, None, None
-    
+    # If bar chart was clicked, update clicked sites based on bar click data
     elif trigger_id == 'bar-chart' and bar_click:
         return [bar_click['points'][0]['y']], None, None, None
+    # If scatter plot was clicked, update clicked sites based on scatter click data
     elif trigger_id == 'scatter-plot' and scatter_click:
         return [scatter_click['points'][0]['hovertext']], None, None, None
+    # If refresh button was clicked, reset to default values
     elif trigger_id == 'refresh-btn':
         return None, None, None, None
-    
+
+    # If none of the above, return current values
     return current_clicked, None, None, None
 
 
-def get_site_info_text(df, meas_type, clicked_sites):
-    """
-    """
+def _get_site_info_text(
+    df, meas_type, clicked_sites
+):
+    """Generate markdown text for the clicked site(s) based on measurement type."""
     site_row = df[df["site_name"].isin(clicked_sites)]
     markdown_text = []
     for i, row in site_row.iterrows():
@@ -336,16 +437,16 @@ def get_site_info_text(df, meas_type, clicked_sites):
             
             markdown_text.append(html.P(""))
             for str_ in [
-                "{x_bright:.2f}-times brighter than the darkest Night Sky (Hart Mountain)".format(
+                "{x_bright:.2f}-times brighter than the darkest Night Sky".format(
                     x_bright=row['x_brighter_than_darkest_night_sky']
                 ),
-                "Bortle Scale (1: Excellent dark sky - 9:  Inner-city sky): {bortle}".format(
+                "Bortle level: {bortle}".format(
                     bortle=row['bortle_sky_level']
                 ),
-                "Median Night Sky Brightness (log scale): {mag_arcsec2:.2f} mag/arcsec²".format(
+                "Median Night Sky Brightness: {mag_arcsec2:.2f} mag/arcsec²".format(
                     mag_arcsec2=row['median_brightness_mag_arcsec2']
                 ),
-                "Flux Ratio (Night Sky Brightness converted to a linear scale): = {flux_ratio:.2f}".format(
+                "Flux Ratio: {flux_ratio:.2f}".format(
                     flux_ratio=row['median_linear_scale_flux_ratio']
                 )
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
@@ -353,13 +454,13 @@ def get_site_info_text(df, meas_type, clicked_sites):
         elif meas_type == "cloudy_nights_brightness":
             markdown_text.append(html.P(""))
             for str_ in [
-                "{x_bright:.2f}-times brighter than the darkest Night Sky (Crater Lake)".format(
+                "{x_bright:.2f}-times brighter than the darkest Night Sky".format(
                     x_bright=row['x_brighter_than_darkest_night_sky']
                 ),
-                "Median Night Sky Brightness (log scale): {mag_arcsec2:.2f} mag/arcsec²".format(
+                "Median Night Sky Brightness: {mag_arcsec2:.2f} mag/arcsec²".format(
                     mag_arcsec2=row['median_brightness_mag_arcsec2']
                 ),
-                "Flux Ratio (Night Sky Brightness converted to a linear scale): = {flux_ratio:.2f}".format(
+                "Flux Ratio: {flux_ratio:.2f}".format(
                     flux_ratio=row['median_linear_scale_flux_ratio']
                 )
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
@@ -367,10 +468,10 @@ def get_site_info_text(df, meas_type, clicked_sites):
         elif meas_type == "long_term_trends":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Rate of Change in Night Sky Brightness vs Prineville Reservoir State Park - a certified Dark Sky Park: {rate_of_change:.2f}".format(
+                "Rate of Change in Night Sky Brightness compared to a certified Dark Sky Park: {rate_of_change:.2f}".format(
                     rate_of_change=row['Rate_of_Change_vs_Prineville_Reservoir_State_Park']
                     ),
-                "Trendline Slope (regression fit of change over time scaled by a factor of 10000): {regression_slope_x10000:.2f}".format(
+                "Trendline Slope: {regression_slope_x10000:.2f}".format(
                     regression_slope_x10000=row['Regression_Line_Slope_x_10000']
                     ),
                 "Percentage Change in Night Sky Brightness per year: {percent_change:.2f}%".format(
@@ -384,81 +485,172 @@ def get_site_info_text(df, meas_type, clicked_sites):
         elif meas_type == "milky_way_visibility":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Ratio Index (ratio of brightness of Milky Way to the surrounding sky): {ratio_index:.2f}".format(
+                "Ratio Index: {ratio_index:.2f}".format(
                     ratio_index=row['ratio_index']
                 ),
-                "Difference Index (difference in brightness between Milky Way and surrounding sky): {difference_index:.2f}".format(
+                "Difference Index: {difference_index:.2f}".format(
                     difference_index=row['difference_index_mag_arcsec2'])
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
             
         elif meas_type == "% clear nights":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Percentage of Clear (no clouds) nights averaged over all months in the year: {clear_nights:.2f}%".format(
+                "Percentage of Clear (no clouds) nights: {clear_nights:.2f}%".format(
                     clear_nights=row['percent_clear_night_samples_all_months']
                 )
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
         
-        markdown_text.append(
-            html.P(
-                "Site Elevation: {elevation:.0f} meters".format(elevation=row['Elevation_in_meters'])
-            )
-        )
     return markdown_text    
     
 
+def _get_help_text(meas_type):
+    """Generate help text based on measurement type."""
+    help_text_str_list = [
+        """Click on a 'marker' or a 'bar' to select a SQM site. The site will be highlighted on the graphics below and 
+            it's corresponding measurements will be shown. Also, note how the highlighted site ranks compared to other sites.""",
+        """Use the buttons on the top-right corner of each the graphics to zoom, pan, reset or save chart as an image.""",
+        """The dashboard will remember your site selection and map view across different questions."""
+    ]
+    help_text_component_list = [html.Li(t_) for t_ in help_text_str_list]
+    
+    if meas_type == "clear_nights_brightness":
+        str_list = [
+        "The darkest Night Sky Location for clear nights based on current data is Hart Mountain.",
+        """Bortle scale is a visual measure of night sky brightness,
+            ranging from 1 for pristine night skies to 9 at light polluted
+            urban night skies""",
+        """Median Night Sky Brightness shown in a log scale of Magnitudes/Arcsecond
+            squared is a common measure used in astronomy""",
+        "Flux Ratio shows a linear scale of night sky brightness.",
+        ]
+    elif meas_type == "cloudy_nights_brightness":
+       str_list = [
+           "The darkest Night Sky Location for cloudy nights based on current data is Crater Lake National Park",
+            """Cloudy nights magnify the night sky brightness contrast 
+            between pristine and light polluted sites. Cloudy nights at 
+            pristine night sky locations are exceedingly dark and are a natural 
+            part of the wild ecosystem there.""",
+            """Median Night Sky Brightness is in a log scale of Magnitudes/Arcsecond
+                squared, a common measure used in astronomy""",
+            "Flux Ratio shows a linear scale of night sky brightness.",
+        ]
+    elif meas_type == "long_term_trends":
+        str_list = [
+            """Only the sites with at least 2 years of data are included to calculate the long-term trends.""",
+            """Rate of Change in Night Sky Brightness is compared to Prineville Reservoir State Park which is a certified Dark Sky Park.""",
+            """Trendline Slope is calculated from regression fit of change over time scaled by a factor of 10000""",
+        ]
+    elif meas_type == "milky_way_visibility":
+        str_list = [
+            """Ratio Index: Ratio of Night Sky Brightness between Milky Way and nearby sky""",
+            """Difference Index: Difference in Night Sky Brightness between Milky Way and nearby sky"""
+        ]
+    elif meas_type == "% clear nights":
+        str_list = [
+            """Percentage of Clear nights mean the nights without any clouds in the night sky""",
+            """Measurement at each site is averaged over all months of the year"""
+        ]
+    
+    # Create list items for each metric explanation
+    metric_component_list = [html.Li(t_) for t_ in str_list]
+    
+    # return the complete help text component 
+    return html.Div(
+        [
+            html.B("Help guide"),
+            html.Ul(help_text_component_list),
+            html.B("Measurements explained: "),
+            html.Ul(metric_component_list)
+        ]
+    )
 
 # Callbacks for interactivity (mirroring Streamlit logic)
 @app.callback(
     [
         Output('oregon-map', 'figure'),
         Output('site-info-div', 'children'),
+        Output("map-chart-title", "children"),
+        Output("map-chart-text", 'children'),
         Output('bar-chart', 'figure'),
         Output('bar-chart-title', 'children'),
         Output('bar-chart-text', 'children'),
         Output('scatter-plot-div', 'style'),
         Output('scatter-plot', 'figure'),
-        Output('scatter-plot-title', 'children')
+        Output('scatter-plot-title', 'children'),
+        Output("help-text", "children")
     ],
     [
         Input('meas-type-radio', 'value'),
         State('map-zoom-store', 'data'),
         State('map-center-store', 'data'),
-        Input('clicked-sites-store', 'data')
+        Input('clicked-sites-store', 'data'),
+        Input('refresh-btn', 'n_clicks')
     ]
 )
 def update_dashboard(
     meas_type,
     map_zoom,
     map_center,
-    clicked_sites
+    clicked_sites,
+    refresh_clicks
 ):
     """
     Update map and ranking chart based on selected measurement type
 
     Parameters:
     - meas_type: The selected measurement type
+    - map_zoom: Current zoom level of the map
+    - map_center: Current center coordinates of the map
+    - clicked_sites: List of currently clicked/selected sites
 
     Returns:
-    - A tuple containing the updated map figure and ranking chart figure
+    - A tuple containing updated figures and texts for the dashboard components
+    1. Updated map figure
+    2. Updated site info text
+    3. Updated map chart title
+    4. Updated map chart explanatory text
+    5. Updated bar chart figure
+    6. Updated bar chart title
+    7. Updated bar chart explanatory text
+    8. Style for scatter plot div (to show/hide)
+    9. Updated scatter plot figure
+    10. Updated scatter plot title
+    11. Updated help text
     """
+    
+    # Check if refresh button was clicked
+    ctx = callback_context
+    if ctx.triggered:
+        trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if trigger_id == 'refresh-btn':
+            # Use default values when refresh is clicked
+            map_zoom = 5
+            map_center = [44.0, -121.0]
+            clicked_sites = None
+    
     # data-table based on selected measurement type
     meas_type_configs = get_meas_type_config(meas_type)
-
-    # Initialize processor and load data
-    processor = OregonSQMProcessor(data_dir=project_root / "shared" / "data")
-    # Load raw data
+    
+    ### Load data processed for the selected measurement type
     final_data_df = processor.load_processed_data(
         data_key=meas_type_configs['data_key'],
-        bar_chart_col=meas_type_configs['bar_chart_y_col']
+        bar_chart_col=meas_type_configs['bar_chart']['bar_chart_y_col']
         )
     
-    if meas_type == "clear_nights_brightness":
-        color_col = meas_type_configs['scatter_x_col']
-    else:
-        color_col = meas_type_configs['bar_chart_y_col']
+    # Generate help text based on measurement type
+    help_text = _get_help_text(meas_type=meas_type)
     
-    # Create Oregon map
+    # Create map graphics
+    ## Create map title
+    map_chart_title = "SQM measurement site map"
+    ## Text to explain map markers
+    map_chart_text = "Note: all locations shown in the map below are approximated for privacy."
+    ## Determine color column for map based on measurement type
+    if meas_type in ["clear_nights_brightness", "cloudy_nights_brightness"]:
+        color_col = meas_type_configs['scatter_plot']['scatter_x_col']
+    else:
+        color_col = meas_type_configs['bar_chart']['bar_chart_y_col']
+    # call function to generate `go.Figure` map object
     cmap = create_oregon_map_plotly(
         sites_df=final_data_df,
         color_col=color_col,
@@ -466,57 +658,70 @@ def update_dashboard(
         map_center=map_center,
         highlight_sites=clicked_sites
         )
-
+    
+    # Generate site info text if a site is clicked
     if clicked_sites is None:
-        site_info_text = ""
+        site_info_text = "" # No site selected
     else:    
-        site_info_text = get_site_info_text(
+        site_info_text = _get_site_info_text(
             df=final_data_df,
             meas_type=meas_type,
             clicked_sites=clicked_sites
         )
     
-    # Create ranking chart using custom function based on Plotly
+    # Create bar chart graphics
+    ## bar chart title
+    bar_chart_title = meas_type_configs['bar_chart']['bar_chart_title']
+    ## Text to explain x-axis scale
+    bar_chart_text = "Note: the x-axis is shown in {0} scale".format(
+        meas_type_configs['bar_chart']['bar_chart_yicks']['tickmode']
+        )
+    ## Create ranking chart using custom function based on Plotly
     fig_bar = create_ranking_chart(
-            sites_df=final_data_df,
-            y_col=meas_type_configs['bar_chart_y_col'],
-            y_label=meas_type_configs['bar_chart_y_label'],
-            clicked_sites=clicked_sites
-        )
-
-    bar_chart_text = "Hover over bars to see {0}. Use the buttons on the top-right of the chart to zoom, pan, reset or save chart as an image".format(
-        meas_type_configs['bar_chart_text']
-        )
+        sites_df=final_data_df,
+        configs=meas_type_configs['bar_chart'],
+        clicked_sites=clicked_sites
+    )    
+    
     # Create scatter plot if applicable
-    if meas_type != "% clear nights":
+    if meas_type in ["clear_nights_brightness", "cloudy_nights_brightness"]:
+        # Show scatter plot title
+        scatter_plot_title = meas_type_configs['scatter_plot']['scatter_plot_title']
+        
         # a style to show the scatter plot div when applicable
         fig_scatter_style = {'display': 'block'}
+        
+        # Add a vertical line at 21.2 mag/arcsec² for clear nights brightness
+        vline_ = 21.2 if meas_type == "clear_nights_brightness" else None
+        
         # Create scatter plot using custom function based on Plotly
         fig_scatter = create_interactive_2d_plot(
-                df=final_data_df,
-                x_col=meas_type_configs['scatter_x_col'],
-                y_col=meas_type_configs['scatter_y_col'],
-                x_label=meas_type_configs['scatter_x_label'],
-                y_label=meas_type_configs['scatter_y_label'],
-                vline=meas_type_configs['vline'],
-                clicked_sites=clicked_sites
-            )
+            df=final_data_df,
+            configs=meas_type_configs['scatter_plot'],
+            clicked_sites=clicked_sites,
+            vline=vline_
+        )
         
     else:
-        # Create empty scatter plot
-        fig_scatter = go.Figure()
+        # Hide scatter plot title
+        scatter_plot_title = ""
         # Hide scatter plot div
         fig_scatter_style = {'display': 'none'}
+        # Create empty scatter plot
+        fig_scatter = go.Figure()
     
     return (
         cmap,
         site_info_text,
+        map_chart_title,
+        map_chart_text,
         fig_bar, 
-        meas_type_configs['bar_chart_title'], 
+        bar_chart_title,
         bar_chart_text,
         fig_scatter_style,
         fig_scatter,
-        meas_type_configs['scatter_plot_title']
+        scatter_plot_title,
+        help_text
     )
 
 
