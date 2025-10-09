@@ -127,7 +127,7 @@ question_component = dbc.Col(
             [
                 # control panel title
                 html.Label(
-                    "Select a question?",
+                    "Select a question",
                     className="form-label fw-bold"
                 ),
                 # Radio items for selecting measurement type
@@ -277,6 +277,10 @@ app.layout = dbc.Container(
             id='map-center-store', # component id
             data=[44.0, -121.0] # property data (initial center coordinates)
         ),
+        dcc.Store(
+            id='max-zoom-violation-store', # component id
+            data=False # property data (whether zoom level exceeded max allowed)
+            ),
         # Initialize clicked sites parameter with None
         dcc.Store(
             id='clicked-sites-store', # component id
@@ -315,6 +319,7 @@ app.layout = dbc.Container(
 @app.callback(
     Output('map-zoom-store', 'data'),
     Output('map-center-store', 'data'),
+    Output('max-zoom-violation-store', 'data'),
     [
         Input('oregon-map', 'relayoutData'),
         Input('refresh-btn', 'n_clicks')
@@ -335,12 +340,12 @@ def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_ce
     Returns:
     - Updated zoom level and center coordinates
     """
-    # initialize callback context to determine which input triggered the callback
+        # initialize callback context to determine which input triggered the callback
     ctx = callback_context
     
     # If no trigger, return current values
     if not ctx.triggered:
-        return current_zoom, current_center
+        return current_zoom, current_center, False
     
     # Get the ID of the triggered input
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
@@ -351,21 +356,28 @@ def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_ce
             zoom = relayoutData['map.zoom']
         else:
             zoom = current_zoom
+
         if 'map.center' in relayoutData and relayoutData['map.center'] is not None:
             center = [relayoutData['map.center']['lat'], relayoutData['map.center']['lon']]
         else:
             center = current_center
-        # Return updated zoom and center
-        return zoom, center
+        
+        if zoom > 10:
+            return 5, [44.0, -121.0], True
+        else:
+            return zoom, center, False
     
     # If refresh button was clicked, reset to default values
     elif trigger_id == 'refresh-btn':
-        return 5, [44.0, -121.0]
-    
-    # If none of the above, return current values
-    return current_zoom, current_center
+        return 5, [44.0, -121.0], False
 
-# callback to update clicked sites based on 
+    # If none of the above, return current values
+    return current_zoom, current_center, False
+
+# callback to update clicked sites based on
+
+
+# callback to update clicked sites based on
 # map, bar chart, scatter plot clicks or refresh button
 @app.callback(
     Output('clicked-sites-store', 'data'),
@@ -378,7 +390,7 @@ def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_ce
         Input('scatter-plot', 'clickData'),
         Input('refresh-btn', 'n_clicks')
     ],
-    [State('clicked-sites-store', 'data')]
+    [State('clicked-sites-store', 'data')],
 )
 def update_clicked_sites(map_click, bar_click, scatter_click, refresh_click, current_clicked):
     """
@@ -564,6 +576,7 @@ def _get_help_text(meas_type):
         ]
     )
 
+
 # Callbacks for interactivity (mirroring Streamlit logic)
 @app.callback(
     [
@@ -584,7 +597,8 @@ def _get_help_text(meas_type):
         State('map-zoom-store', 'data'),
         State('map-center-store', 'data'),
         Input('clicked-sites-store', 'data'),
-        Input('refresh-btn', 'n_clicks')
+        Input('refresh-btn', 'n_clicks'),
+        Input('max-zoom-violation-store', 'data')
     ]
 )
 def update_dashboard(
@@ -592,7 +606,8 @@ def update_dashboard(
     map_zoom,
     map_center,
     clicked_sites,
-    refresh_clicks
+    refresh_clicks,
+    max_zoom_violation
 ):
     """
     Update map and ranking chart based on selected measurement type
@@ -627,7 +642,7 @@ def update_dashboard(
             map_zoom = 5
             map_center = [44.0, -121.0]
             clicked_sites = None
-    
+
     # data-table based on selected measurement type
     meas_type_configs = get_meas_type_config(meas_type)
     
@@ -650,6 +665,7 @@ def update_dashboard(
         color_col = meas_type_configs['scatter_plot']['scatter_x_col']
     else:
         color_col = meas_type_configs['bar_chart']['bar_chart_y_col']
+
     # call function to generate `go.Figure` map object
     cmap = create_oregon_map_plotly(
         sites_df=final_data_df,
