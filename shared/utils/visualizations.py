@@ -276,7 +276,7 @@ def create_oregon_map_plotly(
 		grouped.loc[masker, 'color_rgba'] = 'cyan'
 		grouped.loc[masker, 'marker_size'] = 20
 
-	# Create the mapbox figure
+	# Create the map figure
 	fig = go.Figure(
 		go.Scattermap(
 			lat=grouped['latitude'],
@@ -297,7 +297,7 @@ def create_oregon_map_plotly(
 	fig.update_layout(
 		autosize=True,
 		map=dict(
-			style='open-street-map',
+			style='open-street-map',  # No token required for this style
 			center=dict(lat=map_center[0], lon=map_center[1]),
 			zoom=zoom
 		),
