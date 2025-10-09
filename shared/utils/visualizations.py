@@ -341,7 +341,8 @@ def create_oregon_map_folium(
 	m = folium.Map(
 		location=map_center,
 		zoom_start=zoom,
-		tiles='OpenStreetMap'
+		tiles='OpenStreetMap',
+		max_zoom=12,  # Set maximum zoom level for privacy
 		)
 	
 	# Add site markers

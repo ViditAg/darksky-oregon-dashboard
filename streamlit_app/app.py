@@ -222,12 +222,13 @@ def main():
             color_col = meas_type_configs['scatter_plot']['scatter_x_col']
         else:
             color_col = meas_type_configs['bar_chart']['bar_chart_y_col']
-
+        # set zoom if it is too high
+        set_zoom = st.session_state["map_zoom"] if st.session_state["map_zoom"] <= 9 else 9
         # Create Oregon map using Folium
         cmap = create_oregon_map_folium(
             sites_df=final_data_df,
             main_col=color_col,
-            zoom=st.session_state["map_zoom"],
+            zoom=set_zoom,
             map_center=center_,
             highlight_sites=st.session_state["clicked_sites"]
         )
