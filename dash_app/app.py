@@ -363,7 +363,7 @@ def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_ce
             center = current_center
         
         if zoom > 10:
-            return 5, [44.0, -121.0], True
+            return 10, current_center, True
         else:
             return zoom, center, False
     
@@ -500,8 +500,6 @@ def _get_site_info_text(
                 "Ratio Index: {ratio_index:.2f}".format(
                     ratio_index=row['ratio_index']
                 ),
-                "Difference Index: {difference_index:.2f}".format(
-                    difference_index=row['difference_index_mag_arcsec2'])
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
             
         elif meas_type == "% clear nights":
@@ -554,8 +552,7 @@ def _get_help_text(meas_type):
         ]
     elif meas_type == "milky_way_visibility":
         str_list = [
-            """Ratio Index: Ratio of Night Sky Brightness between Milky Way and nearby sky""",
-            """Difference Index: Difference in Night Sky Brightness between Milky Way and nearby sky"""
+            """Ratio Index: Ratio of Night Sky Brightness between Milky Way and nearby sky"""
         ]
     elif meas_type == "% clear nights":
         str_list = [
