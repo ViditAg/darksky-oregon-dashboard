@@ -179,11 +179,15 @@ map_component = dbc.Col(
         ),
         dcc.Graph(
             id='oregon-map',
-            style={'height': '400px', 'width': '100%'},
+            style={
+                'height': '400px', 
+                'width': '100%',
+                'touch-action': 'pan-x pan-y'  # Disable pinch zoom, allow only panning
+            },
             config={
                 'displayModeBar': True,
                 'displaylogo': True,
-                'scrollZoom': False  # Enable scroll zooming
+                'scrollZoom': False  # Disable scroll zooming
             }
         ),
         html.Br(),html.Br(),
