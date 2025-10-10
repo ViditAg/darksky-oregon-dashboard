@@ -186,7 +186,7 @@ map_component = dbc.Col(
             config={
                 'displayModeBar': True,
                 'displaylogo': True,
-                'scrollZoom': False,  # Disable scroll zooming
+                'scrollZoom': True,  # Enable scroll zooming
                 'staticPlot': False,
             }
         ),
@@ -323,13 +323,6 @@ app.layout = dbc.Container(
     fluid=True  # <-- this enables full-width layout
 )
 
-# Disable pinch-to-zoom on the Mapbox canvas after each render
-app.clientside_callback(
-    ClientsideFunction(namespace='mapboxControls', function_name='disableInteractions'),
-    Output('map-touch-disabler', 'children'),
-    Input('oregon-map', 'figure')
-)
-
 ## ---------------- Begin Callbacks ---------------------
 
 # callback to update map zoom and center if map is interacted with or refresh button is clicked
@@ -369,15 +362,23 @@ def update_zoom_and_center(relayoutData, refresh_click, current_zoom, current_ce
     
     # If map was interacted with, update zoom and center accordingly
     if trigger_id == 'oregon-map' and relayoutData:
-        if 'map.zoom' in relayoutData and relayoutData['map.zoom'] is not None:
-            zoom = relayoutData['map.zoom']
-        else:
-            zoom = current_zoom
+        zoom = current_zoom
+        center = current_center
 
-        if 'map.center' in relayoutData and relayoutData['map.center'] is not None:
+        if 'mapbox.zoom' in relayoutData and relayoutData['mapbox.zoom'] is not None:
+            zoom = relayoutData['mapbox.zoom']
+        elif 'map.zoom' in relayoutData and relayoutData['map.zoom'] is not None:
+            zoom = relayoutData['map.zoom']
+
+        if 'mapbox.center' in relayoutData and relayoutData['mapbox.center'] is not None:
+            center = [
+                relayoutData['mapbox.center'].get('lat', current_center[0]),
+                relayoutData['mapbox.center'].get('lon', current_center[1])
+            ]
+        elif all(k in relayoutData for k in ['mapbox.center.lat', 'mapbox.center.lon']):
+            center = [relayoutData['mapbox.center.lat'], relayoutData['mapbox.center.lon']]
+        elif 'map.center' in relayoutData and relayoutData['map.center'] is not None:
             center = [relayoutData['map.center']['lat'], relayoutData['map.center']['lon']]
-        else:
-            center = current_center
         
         if zoom > 10:
             return 10, current_center, True
