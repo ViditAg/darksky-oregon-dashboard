@@ -182,12 +182,17 @@ map_component = dbc.Col(
             style={
                 'height': '400px', 
                 'width': '100%',
-                'touch-action': 'pan-x pan-y'  # Disable pinch zoom, allow only panning
+                'touch-action': 'pan-x pan-y'  # CSS to prevent pinch zoom
             },
             config={
                 'displayModeBar': True,
                 'displaylogo': True,
-                'scrollZoom': False  # Disable scroll zooming
+                'scrollZoom': False,  # Disable scroll zooming
+                #'doubleClick': False,  # Disable double-click zoom
+                'staticPlot': False,  # Keep interactivity
+                'responsive': True, # Make the plot responsive to container size
+                'showTips': False,  # Disable hover tips on mobile
+                #'modeBarButtonsToRemove': ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d']
             }
         ),
         html.Br(),html.Br(),

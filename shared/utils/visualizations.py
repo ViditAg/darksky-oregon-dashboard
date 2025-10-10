@@ -303,7 +303,9 @@ def create_oregon_map_plotly(
 		),
 		margin=dict(l=0, r=0, t=0, b=0),
 		height=400,
-		showlegend=False
+		showlegend=False,
+		dragmode=False,  # Disable drag interactions
+		clickmode='event'  # Only allow click events
 	)
 
 	return fig
