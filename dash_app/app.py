@@ -294,8 +294,10 @@ app.layout = dbc.Container(
             id='clicked-sites-store', # component id
             data=None # property data (initially no site clicked)
         ),
-        # Hidden div used to trigger clientside touch controls
-        html.Div(id='map-touch-disabler', style={'display': 'none'}),
+        dcc.Store(
+            id='device-info-store',
+            data={'isMobile': False}
+        ),
         # Header
         header_component,
         # Control Panel and Help Text
@@ -323,9 +325,31 @@ app.layout = dbc.Container(
     fluid=True  # <-- this enables full-width layout
 )
 
+app.clientside_callback(
+    ClientsideFunction(namespace='deviceUtils', function_name='detectMobile'),
+    Output('device-info-store', 'data'),
+    Input('oregon-map', 'figure')
+)
+
 ## ---------------- Begin Callbacks ---------------------
 
 # callback to update map zoom and center if map is interacted with or refresh button is clicked
+@app.callback(
+    Output('oregon-map', 'config'),
+    Input('device-info-store', 'data')
+)
+def update_map_config(device_info):
+    config = {
+        'displayModeBar': True,
+        'displaylogo': True,
+        'staticPlot': False,
+    }
+
+    is_mobile = device_info.get('isMobile') if device_info else False
+    config['scrollZoom'] = not is_mobile
+    return config
+
+
 @app.callback(
     Output('map-zoom-store', 'data'),
     Output('map-center-store', 'data'),
