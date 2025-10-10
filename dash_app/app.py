@@ -180,7 +180,11 @@ map_component = dbc.Col(
         dcc.Graph(
             id='oregon-map',
             style={'height': '400px', 'width': '100%'},
-            config={'displayModeBar': True, 'displaylogo': True}
+            config={
+                'displayModeBar': True,
+                'displaylogo': True,
+                'scrollZoom': False  # Enable scroll zooming
+            }
         ),
         html.Br(),html.Br(),
         html.Div(
