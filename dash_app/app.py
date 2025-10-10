@@ -9,7 +9,7 @@
 import sys
 from pathlib import Path
 import dash
-from dash import State, dcc, html, Input, Output, callback_context
+from dash import State, dcc, html, Input, Output, callback_context, ClientsideFunction
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
@@ -182,17 +182,12 @@ map_component = dbc.Col(
             style={
                 'height': '400px', 
                 'width': '100%',
-                'touch-action': 'pan-x pan-y'  # CSS to prevent pinch zoom
             },
             config={
                 'displayModeBar': True,
                 'displaylogo': True,
                 'scrollZoom': False,  # Disable scroll zooming
-                #'doubleClick': False,  # Disable double-click zoom
-                'staticPlot': False,  # Keep interactivity
-                'responsive': True, # Make the plot responsive to container size
-                'showTips': False,  # Disable hover tips on mobile
-                #'modeBarButtonsToRemove': ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d']
+                'staticPlot': False,
             }
         ),
         html.Br(),html.Br(),
@@ -299,6 +294,8 @@ app.layout = dbc.Container(
             id='clicked-sites-store', # component id
             data=None # property data (initially no site clicked)
         ),
+        # Hidden div used to trigger clientside touch controls
+        html.Div(id='map-touch-disabler', style={'display': 'none'}),
         # Header
         header_component,
         # Control Panel and Help Text
@@ -324,6 +321,13 @@ app.layout = dbc.Container(
         footer_component
     ],
     fluid=True  # <-- this enables full-width layout
+)
+
+# Disable pinch-to-zoom on the Mapbox canvas after each render
+app.clientside_callback(
+    ClientsideFunction(namespace='mapboxControls', function_name='disableInteractions'),
+    Output('map-touch-disabler', 'children'),
+    Input('oregon-map', 'figure')
 )
 
 ## ---------------- Begin Callbacks ---------------------
