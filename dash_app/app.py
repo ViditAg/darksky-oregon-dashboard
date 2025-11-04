@@ -108,7 +108,7 @@ header_component = html.Div(
                     ),
                     " has established a network of continuously recording Sky Quality Meters (SQMs) in Oregon to measure the brightness of our night skies at the zenith. This dashboard shows results from our ",
                     html.A(
-                        "latest report (Edition #9, 2024)",
+                        "latest report (Edition #9, 2025)",
                         href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
                         target="_blank",
                         style={"color": "blue", "textDecoration": "underline"}
@@ -185,7 +185,7 @@ map_component = dbc.Col(
             },
             config={
                 'displayModeBar': True,
-                'displaylogo': True,
+                'displaylogo': False,
                 'scrollZoom': True,  # Enable scroll zooming
                 'staticPlot': False,
             }
@@ -215,7 +215,7 @@ bar_component = dbc.Col(
         dcc.Graph(
             id='bar-chart',
             style={'height': '900px', 'maxWidth': '600px', 'margin': '0 auto'},
-            config={'displayModeBar': True, 'displaylogo': True}
+            config={'displayModeBar': True, 'displaylogo': False}
             ),
     ],
     xs=12, # here we set xs to 12 so it takes full width on extra small devices
@@ -236,7 +236,7 @@ scatter_component = dbc.Col(
                 dcc.Graph(
                     id='scatter-plot',
                     style={'height': '300px', 'maxWidth': '350px', 'margin': '0 auto'},
-                    config={'displayModeBar': True, 'displaylogo': True}
+                    config={'displayModeBar': True, 'displaylogo': False}
                 )
             ]
         ),
@@ -542,9 +542,7 @@ def _get_help_text(meas_type):
     if meas_type == "clear_nights_brightness":
         str_list = [
         "The darkest Night Sky Location for clear nights based on current data is Hart Mountain.",
-        """Bortle scale is a visual measure of night sky brightness,
-            ranging from 1 for pristine night skies to 9 at light polluted
-            urban night skies""",
+        "Bortle scale is a visual measure of night sky brightness, ranging from 1 for pristine night skies to 9 at light polluted urban night skies.",
         """Median Night Sky Brightness shown in a log scale of Magnitudes/Arcsecond
             squared is a common measure used in astronomy""",
         "Flux Ratio shows a linear scale of night sky brightness.",
