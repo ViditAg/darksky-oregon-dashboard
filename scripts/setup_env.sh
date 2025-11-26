@@ -20,7 +20,7 @@ echo "[2/6] Activating virtual environment"
 source "$VENV_NAME/bin/activate"
 
 echo "[3/6] Upgrading core packaging tools"
-pip install --upgrade pip setuptools wheel
+pip install pip setuptools wheel
 
 echo "[4/6] Installing pip-tools"
 pip install pip-tools
