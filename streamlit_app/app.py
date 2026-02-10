@@ -149,12 +149,19 @@ def main():
     
     # Description below the title, always shown in the layout
     for str_ in [
+        # """
+        # [DarkSky Oregon](https://www.darkskyoregon.org/) has 
+        # established a network of continuously recording Sky Quality Meters (SQMs) 
+        # in Oregon to measure the brightness of our night skies at the zenith.
+        # This dashboard shows results from their 
+        # [latest report (Edition #9, 2025)](https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf)
+        # """,
         """
         [DarkSky Oregon](https://www.darkskyoregon.org/) has 
         established a network of continuously recording Sky Quality Meters (SQMs) 
         in Oregon to measure the brightness of our night skies at the zenith.
         This dashboard shows results from their 
-        [latest report (Edition #9, 2025)](https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf)
+        [latest report (Edition #10, 2026)](https://drive.google.com/file/d/16EJPwJ6Tcre8zET4SZmEPhj33vy1R6vR/view)
         """,
         "<h6>Help guide</h6> ",
         """
