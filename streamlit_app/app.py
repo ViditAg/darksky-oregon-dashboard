@@ -36,8 +36,18 @@ metric_text_dict = {
         squared is a common measure used in astronomy.</li>
     <li>Flux Ratio shows a linear scale of night sky brightness.</li>
     </ul>""",
+# "cloudy_nights_brightness": """<ul>
+#     <li>The darkest Night Sky Location for cloudy nights based on current data is Crater Lake National Park.</li>
+#     <li>Cloudy nights magnify the night sky brightness contrast 
+#         between pristine and light polluted sites. Cloudy nights at 
+#         pristine night sky locations are exceedingly dark and are a natural 
+#         part of the wild ecosystem there.</li>
+#     <li>Median Night Sky Brightness is in a log scale of Magnitudes/Arcsecond
+#         squared, a common measure used in astronomy.</li>
+#         <li>Flux Ratio shows a linear scale of night sky brightness.</li>
+#     </ul>""",
 "cloudy_nights_brightness": """<ul>
-    <li>The darkest Night Sky Location for cloudy nights based on current data is Crater Lake National Park.</li>
+    <li>The darkest Night Sky Location for cloudy nights based on current data is Hart Mountain.</li>
     <li>Cloudy nights magnify the night sky brightness contrast 
         between pristine and light polluted sites. Cloudy nights at 
         pristine night sky locations are exceedingly dark and are a natural 
@@ -343,8 +353,12 @@ def main():
     # Footer with project info
     st.markdown("---")
     st.markdown(
+    # """
+    # **Framework**: Streamlit | **Data Source**: [DarkSky Oregon SQM Network Technical Report Edition #9](https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf)
+    # **Repository**:  https://github.com/ViditAg/darksky-oregon-dashboard | **Contact**: AI Tech Professional Volunteer
+    # """
     """
-    **Framework**: Streamlit | **Data Source**: [DarkSky Oregon SQM Network Technical Report Edition #9](https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf)
+    **Framework**: Streamlit | **Data Source**: [DarkSky Oregon SQM Network Technical Report Edition #10](https://drive.google.com/file/d/16EJPwJ6Tcre8zET4SZmEPhj33vy1R6vR/view)
     **Repository**:  https://github.com/ViditAg/darksky-oregon-dashboard | **Contact**: AI Tech Professional Volunteer
     """
     )
