@@ -271,8 +271,10 @@ footer_component = html.Div(
             [
             "Framework: Dash | Data Source: ",
             html.A(
-                "DarkSky Oregon SQM Network Technical Report Edition #9",
-                href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+                #"DarkSky Oregon SQM Network Technical Report Edition #9",
+                #href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+                "DarkSky Oregon SQM Network Technical Report Edition #10",                
+                href="https://drive.google.com/file/d/16EJPwJ6Tcre8zET4SZmEPhj33vy1R6vR/view",
                 target="_blank"
             ),
             " Repository: ",
