@@ -66,8 +66,8 @@ class TestOregonSQMProcessor(unittest.TestCase):
                     'Rate_of_Change_vs_Prineville_Reservoir_State_Park'
                 ],
                 data=[
-                    ['Hopservatory', 5, 6.8, 5.979, 174.1],
-                    ['Mt Pisgah Arboretum', 3, 4.0, 2.484, 72.4]
+                    ['Hopservatory', 5.1, 6.8, 5.979, 174.1],
+                    ['Mt Pisgah Arboretum', 3.2, 4.0, 2.484, 72.4]
                 ]
             ),
             'milky_way': pd.DataFrame(
