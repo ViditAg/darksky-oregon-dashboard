@@ -221,7 +221,7 @@ class TestOregonSQMProcessor(unittest.TestCase):
 
             # extend the list of columns to check
             extra_cols_to_check.extend(add_cols)
-
+            print(processed_df)
             # Check that these columns are present, numeric, and have no nulls
             for col in extra_cols_to_check: assert_column_data(processed_df, col)
 
