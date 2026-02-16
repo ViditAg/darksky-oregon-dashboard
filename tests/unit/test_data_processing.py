@@ -19,7 +19,7 @@ class TestOregonSQMProcessor(unittest.TestCase):
         # Initialize expected data to compare against
         self.expected_data = {
             'sites': pd.DataFrame(
-                columns=['Name', 'Install_Number'],
+                columns=['Name', 'Install Number'],
                 data=[
                     ['Awbrey Butte', 1],
                     ['Pine Mountain Observatory', 2]
