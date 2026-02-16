@@ -98,6 +98,24 @@ header_component = html.Div(
                 }
         ),
         # Description paragraph below the title
+        # html.P(
+        #         [
+        #             html.A(
+        #                 "DarkSky Oregon",
+        #                 href="https://www.darkskyoregon.org/",
+        #                 target="_blank",
+        #                 style={"color": "blue", "textDecoration": "underline"}
+        #             ),
+        #             " has established a network of continuously recording Sky Quality Meters (SQMs) in Oregon to measure the brightness of our night skies at the zenith. This dashboard shows results from our ",
+        #             html.A(
+        #                 "latest report (Edition #9, 2025)",
+        #                 href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+        #                 target="_blank",
+        #                 style={"color": "blue", "textDecoration": "underline"}
+        #             )
+        #         ],
+        #         style={"color": "black"}
+        # )
         html.P(
                 [
                     html.A(
@@ -108,8 +126,8 @@ header_component = html.Div(
                     ),
                     " has established a network of continuously recording Sky Quality Meters (SQMs) in Oregon to measure the brightness of our night skies at the zenith. This dashboard shows results from our ",
                     html.A(
-                        "latest report (Edition #9, 2025)",
-                        href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+                        "latest report (Edition #10, 2026)",
+                        href="https://drive.google.com/file/d/16EJPwJ6Tcre8zET4SZmEPhj33vy1R6vR/view",
                         target="_blank",
                         style={"color": "blue", "textDecoration": "underline"}
                     )
@@ -253,8 +271,10 @@ footer_component = html.Div(
             [
             "Framework: Dash | Data Source: ",
             html.A(
-                "DarkSky Oregon SQM Network Technical Report Edition #9",
-                href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+                #"DarkSky Oregon SQM Network Technical Report Edition #9",
+                #href="https://static1.squarespace.com/static/64325bb7c8993f109f0e62cb/t/679c8b55f32ba64b8739b9c2/1738312560582/DarkSky_Oregon_SQM_Network_TechnicalReport_Edition_09_v3_cmpress.pdf",
+                "DarkSky Oregon SQM Network Technical Report Edition #10",                
+                href="https://drive.google.com/file/d/16EJPwJ6Tcre8zET4SZmEPhj33vy1R6vR/view",
                 target="_blank"
             ),
             " Repository: ",
@@ -549,7 +569,7 @@ def _get_help_text(meas_type):
         ]
     elif meas_type == "cloudy_nights_brightness":
        str_list = [
-           "The darkest Night Sky Location for cloudy nights based on current data is Crater Lake National Park",
+           "The darkest Night Sky Location for cloudy nights based on current data is Hart Mountain.",
             """Cloudy nights magnify the night sky brightness contrast 
             between pristine and light polluted sites. Cloudy nights at 
             pristine night sky locations are exceedingly dark and are a natural 

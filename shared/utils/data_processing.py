@@ -61,13 +61,13 @@ class OregonSQMProcessor:
         Return mapping of dataset names to CSV file names.
         """
         return {
-            'sites': 'sites_locations.csv',
-            'geocode': 'sites_coordinates.csv',
-            'clear_measurements': 'clear_night_measurements.csv',
-            'cloudy_measurements': 'cloudy_night_measurements.csv',
-            'trends': 'longterm_trends.csv',
-            'milky_way': 'milky_way_visibility.csv',
-            'cloud_coverage': 'cloud_coverage.csv',
+            'sites': 'sites_locations_install_sequence_2026.csv',
+            'geocode': 'sites_coordinates_2026.csv',
+            'clear_measurements': 'clear_night_measurements_2026.csv',
+            'cloudy_measurements': 'cloudy_night_measurements_2026.csv',
+            'trends': 'longterm_trends_2026.csv',
+            'milky_way': 'milky_way_visibility_2026.csv',
+            'cloud_coverage': 'cloud_coverage_2026.csv',
             'colormap_clear': 'color_map_for_SQM_readings_clear_nights.csv',
             'colormap_cloudy': 'color_map_for_SQM_readings_cloudy_nights.csv',
         }
