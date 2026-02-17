@@ -160,6 +160,7 @@ class TestOregonSQMProcessor(unittest.TestCase):
             """ Helper function to assert column data type and non-null values."""
             self.assertIn(col, df.columns)
             self.assertTrue(pd.api.types.is_numeric_dtype(df[col]))
+            print(df[df[col].isnull()])
             self.assertFalse(df[col].isnull().any())
         
         for key in valid_keys:
@@ -221,10 +222,11 @@ class TestOregonSQMProcessor(unittest.TestCase):
 
             # extend the list of columns to check
             extra_cols_to_check.extend(add_cols)
-
+            print(processed_df)
             # Check that these columns are present, numeric, and have no nulls
             for col in extra_cols_to_check: 
                 print(col)
+                
                 assert_column_data(processed_df, col)
 
             if key == 'clear_measurements':
