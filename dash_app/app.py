@@ -485,7 +485,7 @@ def _get_site_info_text(
             
             markdown_text.append(html.P(""))
             for str_ in [
-                "{x_bright:.2f}-times brighter than the darkest Night Sky".format(
+                "{x_bright:.3f}-times brighter than the darkest Night Sky".format(
                     x_bright=row['x_brighter_than_darkest_night_sky']
                 ),
                 "Bortle level: {bortle}".format(
@@ -502,7 +502,7 @@ def _get_site_info_text(
         elif meas_type == "cloudy_nights_brightness":
             markdown_text.append(html.P(""))
             for str_ in [
-                "{x_bright:.2f}-times brighter than the darkest Night Sky".format(
+                "{x_bright:.3f}-times brighter than the darkest Night Sky".format(
                     x_bright=row['x_brighter_than_darkest_night_sky']
                 ),
                 "Median Night Sky Brightness: {mag_arcsec2:.2f} mag/arcsec²".format(
@@ -533,7 +533,7 @@ def _get_site_info_text(
         elif meas_type == "milky_way_visibility":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Ratio Index: {ratio_index:.2f}".format(
+                "Ratio Index: {ratio_index:.3f}".format(
                     ratio_index=row['ratio_index']
                 ),
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))

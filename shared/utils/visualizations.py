@@ -73,7 +73,7 @@ def create_ranking_chart(
 			y=chart_data['site_name'], # names of sites on y-axis
 			x=chart_data[y_col], # metric values on x-axis
 			orientation='h', # horizontal bars
-			hovertemplate='<b>%{y}</b><br>Value: %{x:.2f}<extra></extra>', # show site name and value on hover
+			hovertemplate='<b>%{y}</b><br>Value: %{x:.3f}<extra></extra>', # show site name and value on hover
 			marker_color=bar_colors,
 			marker_line_color=marker_line_color,
 			marker_line_width=marker_line_width,

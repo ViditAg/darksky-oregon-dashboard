@@ -1,73 +1,73 @@
 site_name,median_brightness_mag_arcsec2,median_linear_scale_flux_ratio,x_brighter_than_darkest_night_sky
-Portland SE,16.39,69.69,170
-Westmoreland Park,16.69,53.18,129.7
-Powell Butte Park,16.87,44.69,109
-Portland SW,16.93,42.63,104
-Hoyt Arboretum,16.94,42.26,103.1
-PCC Rock Creek,17.17,34.02,83
-Sandy River Delta,17.52,24.72,60.3
-Jenkins Estate,17.77,19.61,47.8
-Hopservatory,18.59,9.23,22.5
-Mt Pisgah Arboretum,18.68,8.51,20.8
-Junction City,18.73,8.08,19.7
-Awbrey Chimney,19.01,6.25,15.2
-Awbrey Butte,19.28,4.9,12
-Scholls,19.32,4.7,11.5
-Tetherow,19.67,3.41,8.3
-Madras Juniper Hills,19.69,3.35,8.2
-Talent,19.85,2.89,7
-Columbia Gorge Museum,19.9,2.76,6.7
-Redmond West,19.91,2.73,6.7
-Rooster Rock State Park,20.24,2.01,4.9
-Sisters Town East,20.24,2,4.9
-Ashland Middle School,20.32,1.87,4.6
-Lowell,20.34,1.83,4.5
-Eagle Crest,20.44,1.68,4.1
-High Desert Museum,20.53,1.54,3.8
-Manzanita,20.59,1.46,3.6
-Cove,20.68,1.35,3.3
-Discovery Center,20.66,1.37,3.3
-Oregon Observatory Sunriver,20.76,1.24,3
-Deschutes River SRA,20.83,1.17,2.9
-Sisters High School,20.83,1.17,2.9
-Crooked River Ranch,20.84,1.15,2.8
-Beacon Rock State Park,20.95,1.05,2.6
-Halfway,20.93,1.07,2.6
-Provolt Recreation Site,20.93,1.07,2.6
-Hood River,20.95,1.04,2.5
-Bandon,21.02,0.98,2.4
-Mosier Ranch,21.08,0.93,2.3
-Blue River,21.18,0.85,2.1
-Lava Butte,21.24,0.8,2
-Neskowin,21.24,0.8,2
-Stub Stewart State Park,21.21,0.83,2
-Grizzly Mountain,21.27,0.78,1.9
-Viento State Park,21.3,0.76,1.9
-Wishram AQI,21.34,0.73,1.8
-Rimrock Ranch,21.46,0.66,1.6
-Black Butte Ranch,21.51,0.63,1.5
-Antelope,21.62,0.57,1.4
-Prineville Reservoir State Park,21.58,0.59,1.4
-Shooting Star Ranch,21.67,0.54,1.3
-Arizona Beach State Park,21.73,0.51,1.2
-Camas Sno Park,21.75,0.5,1.2
-Crater Lake National Park,21.79,0.48,1.2
-Humbug Mtn State Park,21.79,0.48,1.2
-Hyatt Lake,21.79,0.48,1.2
-Paulina Lake Visitor Center,21.73,0.51,1.2
-Summit Prairie,21.77,0.49,1.2
-Wallowa Lake State Park,21.78,0.49,1.2
-Cape Blanco State Park,21.82,0.47,1.1
-Cottonwood Canyon State Park,21.81,0.47,1.1
-Hart Mountain Camp,21.83,0.47,1.1
-Juniper Mountain Road,21.83,0.47,1.1
-Lava Cast Forest,21.83,0.47,1.1
-Malheur Field Station,21.87,0.45,1.1
-Oregon Caves National Monument,21.82,0.47,1.1
-Pine Mountain Observatory,21.84,0.46,1.1
-Raven Ridge,21.87,0.45,1.1
-Summer Lake,21.84,0.46,1.1
-Alvord Desert,21.91,0.43,1
-Camp Hancock,21.91,0.43,1
-Hart Mountain,21.98,0.41,1
-Jordan Craters,21.96,0.41,1
+Portland SE,16.39,69.69,169.976
+Westmoreland Park,16.69,53.18,129.707
+Powell Butte Park,16.87,44.69,109.000
+Portland SW,16.93,42.63,103.976
+Hoyt Arboretum,16.94,42.26,103.073
+PCC Rock Creek,17.17,34.02,82.976
+Sandy River Delta,17.52,24.72,60.293
+Jenkins Estate,17.77,19.61,47.829
+Hopservatory,18.59,9.23,22.512
+Mt Pisgah Arboretum,18.68,8.51,20.756
+Junction City,18.73,8.08,19.707
+Awbrey Chimney,19.01,6.25,15.244
+Awbrey Butte,19.28,4.9,11.951
+Scholls,19.32,4.7,11.463
+Tetherow,19.67,3.41,8.317
+Madras Juniper Hills,19.69,3.35,8.171
+Talent,19.85,2.89,7.049
+Columbia Gorge Museum,19.9,2.76,6.732
+Redmond West,19.91,2.73,6.659
+Rooster Rock State Park,20.24,2.01,4.902
+Sisters Town East,20.24,2,4.878
+Ashland Middle School,20.32,1.87,4.561
+Lowell,20.34,1.83,4.463
+Eagle Crest,20.44,1.68,4.098
+High Desert Museum,20.53,1.54,3.756
+Manzanita,20.59,1.46,3.561
+Discovery Center,20.66,1.37,3.341
+Cove,20.68,1.35,3.293
+Oregon Observatory Sunriver,20.76,1.24,3.024
+Sisters High School,20.83,1.17,2.854
+Deschutes River SRA,20.83,1.17,2.854
+Crooked River Ranch,20.84,1.15,2.805
+Provolt Recreation Site,20.93,1.07,2.610
+Halfway,20.93,1.07,2.610
+Beacon Rock State Park,20.95,1.05,2.561
+Hood River,20.95,1.04,2.537
+Bandon,21.02,0.98,2.390
+Mosier Ranch,21.08,0.93,2.268
+Blue River,21.18,0.85,2.073
+Stub Stewart State Park,21.21,0.83,2.024
+Lava Butte,21.24,0.8,1.951
+Neskowin,21.24,0.8,1.951
+Grizzly Mountain,21.27,0.78,1.902
+Viento State Park,21.3,0.76,1.854
+Wishram AQI,21.34,0.73,1.780
+Rimrock Ranch,21.46,0.66,1.610
+Black Butte Ranch,21.51,0.63,1.537
+Prineville Reservoir State Park,21.58,0.59,1.439
+Antelope,21.62,0.57,1.390
+Shooting Star Ranch,21.67,0.54,1.317
+Arizona Beach State Park,21.73,0.51,1.244
+Paulina Lake Visitor Center,21.73,0.51,1.244
+Camas Sno Park,21.75,0.5,1.220
+Summit Prairie,21.77,0.49,1.195
+Wallowa Lake State Park,21.78,0.49,1.195
+Hyatt Lake,21.79,0.48,1.171
+Crater Lake National Park,21.79,0.48,1.171
+Humbug Mtn State Park,21.79,0.48,1.171
+Cottonwood Canyon State Park,21.81,0.47,1.146
+Oregon Caves National Monument,21.82,0.47,1.146
+Cape Blanco State Park,21.82,0.47,1.146
+Lava Cast Forest,21.83,0.47,1.146
+Hart Mountain Camp,21.83,0.47,1.146
+Juniper Mountain Road,21.83,0.47,1.146
+Pine Mountain Observatory,21.84,0.46,1.122
+Summer Lake,21.84,0.46,1.122
+Raven Ridge,21.87,0.45,1.098
+Malheur Field Station,21.87,0.45,1.098
+Alvord Desert,21.91,0.43,1.049
+Camp Hancock,21.91,0.43,1.049
+Jordan Craters,21.96,0.41,1.000
+Hart Mountain,21.98,0.41,1.000
