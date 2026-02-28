@@ -18,7 +18,8 @@ scatter_plot_configs = {
 meas_type_dict = {
     "clear_nights_brightness": {
         "data_key": "clear_measurements",
-        "Question_text": "Clear Nights – where is the Night Sky most pristine?",
+        "Question_text": "Clear Nights – where is the Night Sky most and least light polluted?",
+        "map_text": "Clear Nights - Light Pollution?",
         "bar_chart": {
             "bar_chart_title": "Clear Nights - Ranking sites by how much brighter they are compared to our darkest night sky measurement site",
             "bar_chart_y_col": "x_brighter_than_darkest_night_sky",
@@ -33,7 +34,8 @@ meas_type_dict = {
     },
     "cloudy_nights_brightness": {
         "data_key": "cloudy_measurements",
-        "Question_text": "Cloudy Nights – where is the Night Sky most pristine?",
+        "Question_text": "Cloudy Nights – where is the Night Sky most and least light polluted?",
+        "map_text": "Cloudy Nights - Light Pollution?",
         "bar_chart": {
             "bar_chart_title": "Cloudy Nights - Ranking sites by how much brighter they are compared to our darkest night sky measurement site",
             "bar_chart_y_col": "x_brighter_than_darkest_night_sky",
@@ -49,6 +51,7 @@ meas_type_dict = {
     "long_term_trends": {
         "data_key": "trends",
         "Question_text": "Starry night skies – where are they disappearing or recovering?",
+        "map_text": "Starry Nights - Disappearing?",
         "bar_chart": {
             "bar_chart_title": "Ranking sites by the rate of change in night sky brightness compared to a certified Dark Sky Park",
             "bar_chart_y_col": "Rate_of_Change_vs_Prineville_Reservoir_State_Park",
@@ -64,6 +67,7 @@ meas_type_dict = {
     "milky_way_visibility": {
         "data_key": "milky_way",
         "Question_text": "Milky Way – where does it stand out best?",
+        "map_text": "Milky Way Visibility?",
         "bar_chart": {
             "bar_chart_title": "Milky Way – Ranking sites by how well it stands out in the clear night sky.",
             "bar_chart_y_col": "ratio_index",
@@ -78,9 +82,10 @@ meas_type_dict = {
     },
     "% clear nights": {
         "data_key": "cloud_coverage",
-        "Question_text": "Clear Nights – where are they most common and least cloudy?",
+        "Question_text": "Cloudiness – where are the night skies most and least cloudy?",
+        "map_text": "Cloudiness?",
         "bar_chart": {
-            "bar_chart_title": "Clear Nights – Ranking sites by the percentage of clear, not cloudy nights.",
+            "bar_chart_title": "Cloudiness – Ranking sites by the percentage of clear, not cloudy nights.",
             "bar_chart_y_col": "percent_clear_night_samples_all_months",
             "bar_chart_y_label": "<--- Cloudiest -------------------------------- Clearest --->",
             "bar_chart_yicks": {

@@ -688,7 +688,7 @@ def update_dashboard(
     
     # Create map graphics
     ## Create map title
-    map_chart_title = "SQM measurement site map"
+    map_chart_title = ["SQM measurement site map", html.Br(), meas_type_configs['map_text']]
     ## Text to explain map markers
     map_chart_text = "Note: all locations shown in the map below are approximated for privacy."
     ## Determine color column for map based on measurement type

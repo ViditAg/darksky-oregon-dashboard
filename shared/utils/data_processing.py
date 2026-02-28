@@ -70,6 +70,9 @@ class OregonSQMProcessor:
             'cloud_coverage': 'cloud_coverage_2026.csv',
             'colormap_clear': 'color_map_for_SQM_readings_clear_nights.csv',
             'colormap_cloudy': 'color_map_for_SQM_readings_cloudy_nights.csv',
+            'colormap_trends': 'color_map_for_long_term_trends.csv',
+            'colormap_milky_way': 'color_map_for_milky_way_visibility.csv',
+            'colormap_cloud_coverage': 'color_map_for_cloud_coverage.csv',
         }
 
     
@@ -105,6 +108,7 @@ class OregonSQMProcessor:
         df: pd.DataFrame,
         colormap_df: pd.DataFrame,
         value_col: str,
+        colormap_bin_col: str = 'brightness_mag_arcsec2',
         color_col: str = 'color_rgba'
     ) -> pd.DataFrame:
         """
@@ -117,6 +121,8 @@ class OregonSQMProcessor:
             DataFrame containing color mapping information.
         value_col : str
             Column in df whose values will determine the color mapping.
+        colormap_bin_col : str, optional
+            Column in colormap_df that contains the bin boundaries, by default 'brightness_mag_arcsec2'.
         color_col : str, optional
             Name of the new color column to be added, by default 'color_rgba'.
         Returns
@@ -127,40 +133,25 @@ class OregonSQMProcessor:
         # Create a copy of the DataFrame to avoid modifying the original
         df_with_colors = df.copy()
 
-        # get min and max values for normalization
-        df_val_max = df[value_col].max()
-        df_val_min = df[value_col].min()
-        
         # iterate over rows and assign colors based on value ranges 
         for i, row in df.iterrows():
             # get the value for the current row
             value = row[value_col]
 
-            # determine the color scheme based on the column being processed
-            if value_col == 'median_brightness_mag_arcsec2':
-                # find the closest color bin in the colormap
-                site_color_bin = colormap_df[
-                    (colormap_df['brightness_mag_arcsec2'] > value)
-                    ]['brightness_mag_arcsec2'].min()
-                # get the corresponding RGBA color
-                color = colormap_df[
-                    (colormap_df['brightness_mag_arcsec2'] == site_color_bin)
-                ].apply(
-                    lambda x: f"rgba({x['red']}, {x['green']}, {x['blue']}, 1)", axis=1
-                    ).values[0]
-            
-            elif value_col == 'Rate_of_Change_vs_Prineville_Reservoir_State_Park':
-                # Use a red-green gradient for rate of change
-                color = 'rgba({0}, {1}, {0}, 1)'.format(
-                    int(255 * (value - df_val_min) / (df_val_max - df_val_min)),
-                    255 - int(255 * (value - df_val_min) / (df_val_max - df_val_min))
-                )
-            
+            # find the nearest colormap bin above the current value (ceiling lookup)
+            above_bins = colormap_df[colormap_df[colormap_bin_col] > value][colormap_bin_col]
+            if above_bins.empty:
+                # value is at or above the max bin — use the last color
+                site_color_bin = colormap_df[colormap_bin_col].max()
             else:
-                # Use a blue gradient for other values
-                color = 'rgba({0}, 0, {0}, 1)'.format(
-                    int(255 * (value - df_val_min) / (df_val_max - df_val_min))
-                )
+                site_color_bin = above_bins.min()
+
+            # get the corresponding RGBA color from the colormap
+            color = colormap_df[
+                colormap_df[colormap_bin_col] == site_color_bin
+            ].apply(
+                lambda x: f"rgba({x['red']}, {x['green']}, {x['blue']}, 1)", axis=1
+            ).values[0]
 
             # assign the color to the new column
             df_with_colors.at[i, color_col] = color
@@ -198,23 +189,30 @@ class OregonSQMProcessor:
         # Merge geocode data with main data
         final_data_df = pd.merge(data_df, geocode_df, on="site_name", how="left")
         
-        # Add color mapping table based on measurement type
-        if data_key == 'clear_measurements':
-            colormap_key = 'colormap_clear'
-        else:
-            colormap_key = 'colormap_cloudy'
-
         # Determine the value column for color mapping
         if bar_chart_col == 'x_brighter_than_darkest_night_sky':
             value_col = 'median_brightness_mag_arcsec2'
         else:
             value_col = bar_chart_col
 
+        # Select the colormap and its bin column based on measurement type
+        colormap_config = {
+            'clear_measurements':  ('colormap_clear',        'brightness_mag_arcsec2'),
+            'cloudy_measurements': ('colormap_cloudy',       'brightness_mag_arcsec2'),
+            'trends':              ('colormap_trends',       'Rate_of_Change_vs_Prineville_Reservoir_State_Park'),
+            'milky_way':           ('colormap_milky_way',    'ratio_index'),
+            'cloud_coverage':      ('colormap_cloud_coverage', 'percent_clear_night_samples_all_months'),
+        }
+        colormap_key, colormap_bin_col = colormap_config.get(
+            data_key, ('colormap_cloudy', 'brightness_mag_arcsec2')
+        )
+
         # Add color mapping column
         final_data_df = self._add_color_map_column(
             df=final_data_df,
             colormap_df=raw_dfs[colormap_key],
             value_col=value_col,
+            colormap_bin_col=colormap_bin_col,
         )
         
         # Assign DarkSkyQualified status
