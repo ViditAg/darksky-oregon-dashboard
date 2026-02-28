@@ -590,8 +590,8 @@ def _get_help_text(meas_type):
         ]
     elif meas_type == "% clear nights":
         str_list = [
-            """Percentage of Clear nights mean the nights without any clouds in the night sky""",
-            """Measurement at each site is averaged over all months of the year"""
+            """Percentage of Clear nighttime measurements mean the nights without any clouds in the night sky""",
+            """Nighttime measurements at each site are averaged over all months of the year"""
         ]
     
     # Create list items for each metric explanation
