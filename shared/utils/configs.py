@@ -85,7 +85,7 @@ meas_type_dict = {
         "Question_text": "Cloudiness – where are the night skies most and least cloudy?",
         "map_text": "Cloudiness?",
         "bar_chart": {
-            "bar_chart_title": "Cloudiness – Ranking sites by the percentage of clear, not cloudy nights.",
+            "bar_chart_title": "Cloudiness – Ranking sites by the percentage of clear, not cloudy, nighttime measurements.",
             "bar_chart_y_col": "percent_clear_night_samples_all_months",
             "bar_chart_y_label": "<--- Cloudiest -------------------------------- Clearest --->",
             "bar_chart_yicks": {

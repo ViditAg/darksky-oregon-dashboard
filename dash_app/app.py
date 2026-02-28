@@ -541,7 +541,7 @@ def _get_site_info_text(
         elif meas_type == "% clear nights":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Percentage of Clear (no clouds) nights: {clear_nights:.2f}%".format(
+                "Percentage of Clear (no clouds) nighttime measurements: {clear_nights:.3f}%".format(
                     clear_nights=row['percent_clear_night_samples_all_months']
                 )
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
