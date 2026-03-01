@@ -485,7 +485,7 @@ def _get_site_info_text(
             
             markdown_text.append(html.P(""))
             for str_ in [
-                "{x_bright:.2f}-times brighter than the darkest Night Sky".format(
+                "{x_bright:.3f}-times brighter than the darkest Night Sky".format(
                     x_bright=row['x_brighter_than_darkest_night_sky']
                 ),
                 "Bortle level: {bortle}".format(
@@ -502,7 +502,7 @@ def _get_site_info_text(
         elif meas_type == "cloudy_nights_brightness":
             markdown_text.append(html.P(""))
             for str_ in [
-                "{x_bright:.2f}-times brighter than the darkest Night Sky".format(
+                "{x_bright:.3f}-times brighter than the darkest Night Sky".format(
                     x_bright=row['x_brighter_than_darkest_night_sky']
                 ),
                 "Median Night Sky Brightness: {mag_arcsec2:.2f} mag/arcsec²".format(
@@ -533,7 +533,7 @@ def _get_site_info_text(
         elif meas_type == "milky_way_visibility":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Ratio Index: {ratio_index:.2f}".format(
+                "Ratio Index: {ratio_index:.3f}".format(
                     ratio_index=row['ratio_index']
                 ),
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
@@ -541,7 +541,7 @@ def _get_site_info_text(
         elif meas_type == "% clear nights":
             markdown_text.append(html.P(""))
             for str_ in [
-                "Percentage of Clear (no clouds) nights: {clear_nights:.2f}%".format(
+                "Percentage of Clear (no clouds) nighttime measurements: {clear_nights:.1f}%".format(
                     clear_nights=row['percent_clear_night_samples_all_months']
                 )
             ]: markdown_text.append(html.P(str_, style={"marginBottom": "0px"}))
@@ -590,8 +590,8 @@ def _get_help_text(meas_type):
         ]
     elif meas_type == "% clear nights":
         str_list = [
-            """Percentage of Clear nights mean the nights without any clouds in the night sky""",
-            """Measurement at each site is averaged over all months of the year"""
+            """Percentage of Clear nighttime measurements mean the nights without any clouds in the night sky""",
+            """Nighttime measurements at each site are averaged over all months of the year"""
         ]
     
     # Create list items for each metric explanation
@@ -688,7 +688,7 @@ def update_dashboard(
     
     # Create map graphics
     ## Create map title
-    map_chart_title = "SQM measurement site map"
+    map_chart_title = ["SQM measurement site map", html.Br(), meas_type_configs['map_text']]
     ## Text to explain map markers
     map_chart_text = "Note: all locations shown in the map below are approximated for privacy."
     ## Determine color column for map based on measurement type
